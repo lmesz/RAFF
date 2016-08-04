@@ -44,11 +44,14 @@ class AwsHandler
     end
 
     def create_vpc_if_not_exists()
+
+        vpc_name = "TestVPC"
+
         puts "Create vpc ..."
         
         @ec2.vpcs.each() do |vpc|
             vpc.tags.each() do |tag|
-                if (tag.key == "Name" and tag.value == "TestVPC")
+                if (tag.key == "Name" and tag.value == vpc_name)
                     puts "VPC exists"
                     return vpc.id
                 end
@@ -69,18 +72,20 @@ class AwsHandler
         })
 
         # Name our VPC
-        vpc.create_tags({ tags: [{ key: 'Name', value: 'TestVPC' }]})
+        vpc.create_tags({ tags: [{ key: 'Name', value: vpc_name }]})
 
         puts vpc.vpc_id
         return vpc.vpc_id
     end
 
     def create_subnet_if_not_exists(vpc_id)
+        subnet_name = "TestSubnet"
+
         puts "Check if subnet exists ..."
 
         @ec2.subnets.each() do |subnet|
             subnet.tags.each() do |tag|
-                if (tag.key == "Name" and tag.value == "TestSubnet")
+                if (tag.key == "Name" and tag.value == subnet_name)
                     puts "Subnet exists"
                     return subnet.id
                 end
@@ -95,16 +100,19 @@ class AwsHandler
           availability_zone: 'us-east-1c'
         })
 
-        subnet.create_tags({ tags: [{ key: 'Name', value: 'TestSubnet' }]})
+        subnet.create_tags({ tags: [{ key: 'Name', value: subnet_name }]})
         puts subnet.id
         return subnet.id
     end
 
     def create_security_group_if_not_exists(vpc_id)
+
+        security_group_name = "TestSecurityGroup"
+
         puts "Check if security group exists ..."
 
         @ec2.security_groups.each() do |sec_group|
-            if sec_group.group_name == "TestSecurityGroup"
+            if sec_group.group_name == security_group_name
                 puts "Security group exists"
                 return sec_group.id
             end
@@ -113,7 +121,7 @@ class AwsHandler
         puts "Security group does not exists, let's create..."
 
         sg = @ec2.create_security_group({
-            group_name: 'TestSecurityGroup',
+            group_name: security_group_name,
             description: 'Security group for TestInstance',
             vpc_id: vpc_id
           })
@@ -165,11 +173,14 @@ class AwsHandler
     end
 
     def create_instance(sg_id, subnet_id)
+
+        instance_name = "TestInstance"
+
         puts "Check if instance exists"
 
         @ec2.instances.each() do |instance|
             instance.tags.each() do |tag|
-                if (tag.key == "Name" and tag.value == "TestInstance")
+                if (tag.key == "Name" and tag.value == instance_name)
                     puts "Instance already exists"
                     return
                 end
@@ -187,17 +198,20 @@ class AwsHandler
           min_count: 1,
           max_count: 1,
           key_name: 'TestKey',
-          security_group_ids: [sg_id],
           user_data: encoded_script,
           instance_type: 't2.micro',
-          subnet_id: subnet_id,
+          network_interfaces: [{
+            device_index: 0,
+            subnet_id: subnet_id,
+            associate_public_ip_address: true
+          }],
         })
 
         # Wait for the instance to be created, running, and passed status checks
         @ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance[0].id]})
 
         # Name the instance 'TestInstance' and give it the Group tag 'TestGroup'
-        instance.create_tags({ tags: [{ key: 'Name', value: 'TestInstance' }, { key: 'Group', value: 'TestGroup' }]})
+        instance.batch_create_tags({ tags: [{ key: 'Name', value: instance_name }, { key: 'Group', value: 'TestGroup' }]})
 
         puts "Instance created"
     end
