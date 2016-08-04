@@ -52,7 +52,7 @@ class AwsHandler
         @ec2.vpcs.each() do |vpc|
             vpc.tags.each() do |tag|
                 if (tag.key == "Name" and tag.value == vpc_name)
-                    puts "VPC exists"
+                    puts "VPC exists" #assume it is attached to an IGW
                     return vpc.id
                 end
             end
@@ -74,9 +74,51 @@ class AwsHandler
         # Name our VPC
         vpc.create_tags({ tags: [{ key: 'Name', value: vpc_name }]})
 
-        puts vpc.vpc_id
+        igw_id = attach_vpc_to_internet_gateway(vpc.vpc_id)
+
+        create_route_table_to_internet_gateway(vpc.vpc_id, igw_id)
+
         return vpc.vpc_id
     end
+
+    def attach_vpc_to_internet_gateway(vpc_id)
+
+        internet_gateway_name = "TestIGW"
+
+        puts "Check if Internet Gateway already exists ..."
+        @ec2.internet_gateways.each() do |igw|
+            igw.tags.each() do |tag|
+                if (tag.key == "Name" and tag.value == internet_gateway_name)
+                    puts "Internet Gateway exists..." #assume if it exists vpc already attached
+                    return
+                end
+            end
+        end
+
+        puts "Internet Gateway does not exists, create it ..."
+        igw = @ec2.create_internet_gateway
+
+        igw.create_tags({ tags: [{ key: 'Name', value: internet_gateway_name }]})
+        igw.attach_to_vpc(vpc_id: vpc_id)
+        return igw.id
+    end
+
+    def create_route_table_to_internet_gateway(vpc_id, igw_id)
+        puts "Add the internet gateway to the route tables ..."
+        
+        @ec2.route_tables.each() do |route_table|
+            if route_table.vpc_id == vpc_id
+                puts "Route found for the vpc ..."
+                route_table.create_route({
+                  destination_cidr_block: '0.0.0.0/0',
+                  gateway_id: igw_id
+                })
+                return
+            end
+        end
+        puts "No route table for the given vpc :("
+    end
+
 
     def create_subnet_if_not_exists(vpc_id)
         subnet_name = "TestSubnet"
@@ -172,9 +214,7 @@ class AwsHandler
         return sg.id
     end
 
-    def create_instance(sg_id, subnet_id)
-
-        instance_name = "TestInstance"
+    def create_instance(instance_name, sg_id, subnet_id)
 
         puts "Check if instance exists"
 
@@ -189,9 +229,7 @@ class AwsHandler
 
         puts "Instance does not exists, Create instance ..."
 
-        script = 'apt-get update && apt-get install -y ansible'
-
-        encoded_script = Base64.encode64(script)
+        encoded_script = Base64.encode64("apt-get update && apt-get install -y ansible")
         
         instance = @ec2.create_instances({
           image_id: 'ami-2d39803a',
@@ -203,6 +241,7 @@ class AwsHandler
           network_interfaces: [{
             device_index: 0,
             subnet_id: subnet_id,
+            groups: [sg_id],
             associate_public_ip_address: true
           }],
         })
