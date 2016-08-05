@@ -1,7 +1,10 @@
 require 'aws-sdk'
+require 'net/ssh'
 
 class AwsHandler
     REGION = 'us-east-1'
+    KEY_NAME = 'FakeKey'
+
 
     def initialize()
         @ec2 = Aws::EC2::Resource.new(region: REGION)
@@ -9,38 +12,30 @@ class AwsHandler
     
     def create_key_if_not_exists()
 
-        key_name = 'TestKey'
-
         puts "Check if key exists ..."
         @ec2.key_pairs().each do |key|
-            if key.name == key_name
-                puts "#{key_name} exists"
-                if not is_key_downloaded(key_name)
-                    puts "Download #{key_name} file"
-                    download_key(key_name)
+            if key.name == KEY_NAME
+                puts "#{KEY_NAME} exists"
+                if not is_key_downloaded()
+                    raise "#{KEY_NAME} file doesn't exists local !"
                 end
                 return
             end
         end
 
         puts "Create key ..."
-
-        create_key(key_name)
-        download_key(key_name)
+        create_key()
     end
 
-    def is_key_downloaded(key_name)
-        return File.file?(Dir.home + '/' + key_name + '.pem')
+    def is_key_downloaded()
+        return File.file?(Dir.home + '/' + KEY_NAME + '.pem')
     end
 
-    def download_key(key_name)
-        filename = File.join(Dir.home, key_name + '.pem')
-        File.open(filename, 'w') { |file| file.write(key_pair.key_material) }
-    end
-
-    def create_key(key_name)
+    def create_key()
         client = Aws::EC2::Client.new(region: REGION)
-        client.create_key_pair({key_name: key_name})
+        key_pair = client.create_key_pair({key_name: KEY_NAME})
+        filename = File.join(Dir.home, KEY_NAME + '.pem')
+        File.open(filename, 'w') { |file| file.write(key_pair.key_material) }
     end
 
     def create_vpc_if_not_exists()
@@ -221,7 +216,13 @@ class AwsHandler
         @ec2.instances.each() do |instance|
             instance.tags.each() do |tag|
                 if (tag.key == "Name" and tag.value == instance_name)
-                    puts "Instance already exists"
+                    puts "Instance already exists. Public DNS adress is #{instance.public_dns_name}"
+                    
+                    Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem']) do |ssh|
+                        output = ssh.exec!("sudo apt-get update && sudo apt-get install -y ansible")
+                        puts output
+                    end
+
                     return
                 end
             end
@@ -229,14 +230,11 @@ class AwsHandler
 
         puts "Instance does not exists, Create instance ..."
 
-        encoded_script = Base64.encode64("apt-get update && apt-get install -y ansible")
-        
         instance = @ec2.create_instances({
           image_id: 'ami-2d39803a',
           min_count: 1,
           max_count: 1,
-          key_name: 'TestKey',
-          user_data: encoded_script,
+          key_name: KEY_NAME,
           instance_type: 't2.micro',
           network_interfaces: [{
             device_index: 0,
