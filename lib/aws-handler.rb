@@ -1,9 +1,10 @@
 require 'aws-sdk'
 require 'net/ssh'
+require 'net/scp'
 
 class AwsHandler
     REGION = 'us-east-1'
-    KEY_NAME = 'FakeKey'
+    KEY_NAME = 'TestKey'
 
 
     def initialize()
@@ -219,8 +220,20 @@ class AwsHandler
                     puts "Instance already exists. Public DNS adress is #{instance.public_dns_name}"
                     
                     Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem']) do |ssh|
-                        output = ssh.exec!("sudo apt-get update && sudo apt-get install -y ansible")
+                        output = ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible")
                         puts output
+                        output = ssh.exec!("ansible -v")
+                        puts output
+                        output = ssh.exec!("sudo su && echo '[polip]' >> /etc/ansible/hosts && echo 'localhost ansible_connection=local' >> /etc/ansible/hosts")
+                        puts output
+=begin
+                        output = ssh.exec!("ansible-galaxy install geerlingguy.drupal")
+                        puts output
+                        output = Net::SCP.upload!(instance.public_dns_name, 'ubuntu', "/site.yml", "/tmp", :keys => [Dir.home + '/' + KEY_NAME + '.pem'])
+                        puts output
+                        output = ssh.exec!("ansible-playbook /tmp/site.yml")
+                        puts output
+=end
                     end
 
                     return
