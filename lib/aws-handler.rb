@@ -210,26 +210,37 @@ class AwsHandler
         return sg.id
     end
 
-    def install_ansible_lamp_stack_and_drupal()
+    def install_ansible_lamp_stack_and_drupal(instance)
         Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem']) do |ssh|
-            output = ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible")
-            puts output
-            output = ssh.exec!("ansible --version")
-            puts output
-            output = ssh.exec!("sudo add-apt-repository ppa:ondrej/php -y && sudo apt-get update")
-            puts output
-            output = ssh.exec!("sudo apt-get install -y libapache2-mod-php7.0")
-            puts output
-            output = ssh.scp.upload!(File.dirname(__FILE__) + "/hosts.yml", "/tmp")
-            puts output
-            output = ssh.exec!("sudo ansible-galaxy install geerlingguy.drupal")
-            puts output
-            output = ssh.scp.upload!(File.dirname(__FILE__) + "/site.yml", "/tmp")
-            puts output
-            output = ssh.exec!("ansible-playbook -i /tmp/hosts.yml /tmp/site.yml")
-            puts output
-            output = ssh.exec!("sudo find /etc/apache2/sites-enabled -type l -delete && sudo apache2ctl restart")
-            puts output
+            puts "Install ansible, but the default that is in the repo is too old so use custom ppa"
+            ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible") do |ch, stream, data|
+                puts "[#{ch[:host]} : #{stream}] #{data}"
+            end
+            puts "Ansible version is"
+            puts ssh.exec!("ansible --version")
+            puts "We use a trusty image and the used role is based on php7 so we need to add another custom ppa (it is from the maintaner of the php in debian so not too risky (hope so...) )"
+            ssh.exec!("sudo add-apt-repository ppa:ondrej/php -y && sudo apt-get update") do |ch, stream, data|
+                puts "[#{ch[:host]} : #{stream}] #{data}"
+            end
+            puts "We need to install php mod for apache by hand ..."
+            ssh.exec!("sudo apt-get install -y libapache2-mod-php7.0") do |ch, stream, data|
+                puts "[#{ch[:host]} : #{stream}] #{data}"
+            end
+            puts "Add host for ansible"
+            ssh.scp.upload!(File.dirname(__FILE__) + "/hosts.yml", "/tmp")
+            ssh.scp.upload!(File.dirname(__FILE__) + "/site.yml", "/tmp")
+            puts "There is a role in ansible galaxy for drupal that I use. It contains all the necessary package (except libapache2-mod-php7.0 (how did he test it ?)"
+            ssh.exec!("sudo ansible-galaxy install geerlingguy.drupal") do |ch, stream, data|
+                puts "[#{ch[:host]} : #{stream}] #{data}"
+            end
+            puts "Install the drupal role to localhost. Let's rock!"
+            ssh.exec!("ansible-playbook -i /tmp/hosts.yml /tmp/site.yml") do |ch, stream, data|
+                puts "[#{ch[:host]} : #{stream}] #{data}"
+            end
+            puts "We don't need the installed apache default page so remove it!"
+            puts ssh.exec!("sudo find /etc/apache2/sites-enabled -type l -delete && sudo apache2ctl restart")
+            puts "Instance created and drupal is available at: http://#{instance.public_dns_name}"
+        end
     end
 
     def create_instance(instance_name, sg_id, subnet_id)
@@ -240,8 +251,7 @@ class AwsHandler
             instance.tags.each() do |tag|
                 if (tag.key == "Name" and tag.value == instance_name)
                     puts "Instance already exists. Public DNS adress is #{instance.public_dns_name}"
-                    install_ansible_lamp_stack_and_drupal()
-                    end
+                    install_ansible_lamp_stack_and_drupal(instance)
                     return
                 end
             end
@@ -269,7 +279,6 @@ class AwsHandler
         # Name the instance 'TestInstance' and give it the Group tag 'TestGroup'
         instance.batch_create_tags({ tags: [{ key: 'Name', value: instance_name }, { key: 'Group', value: 'TestGroup' }]})
 
-        install_ansible_lamp_stack_and_drupal()
-        puts "Instance created and drupal is available at: http://#{instance.public_dns_name}"
+        install_ansible_lamp_stack_and_drupal(instance)
     end
 end
