@@ -279,6 +279,6 @@ class AwsHandler
         # Name the instance 'TestInstance' and give it the Group tag 'TestGroup'
         instance.batch_create_tags({ tags: [{ key: 'Name', value: instance_name }, { key: 'Group', value: 'TestGroup' }]})
 
-        install_ansible_lamp_stack_and_drupal(instance)
+        install_ansible_lamp_stack_and_drupal(instance[0])
     end
 end
