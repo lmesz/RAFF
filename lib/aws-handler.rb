@@ -210,6 +210,28 @@ class AwsHandler
         return sg.id
     end
 
+    def install_ansible_lamp_stack_and_drupal()
+        Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem']) do |ssh|
+            output = ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible")
+            puts output
+            output = ssh.exec!("ansible --version")
+            puts output
+            output = ssh.exec!("sudo add-apt-repository ppa:ondrej/php -y && sudo apt-get update")
+            puts output
+            output = ssh.exec!("sudo apt-get install -y libapache2-mod-php7.0")
+            puts output
+            output = ssh.scp.upload!(File.dirname(__FILE__) + "/hosts.yml", "/tmp")
+            puts output
+            output = ssh.exec!("sudo ansible-galaxy install geerlingguy.drupal")
+            puts output
+            output = ssh.scp.upload!(File.dirname(__FILE__) + "/site.yml", "/tmp")
+            puts output
+            output = ssh.exec!("ansible-playbook -i /tmp/hosts.yml /tmp/site.yml")
+            puts output
+            output = ssh.exec!("sudo find /etc/apache2/sites-enabled -type l -delete && sudo apache2ctl restart")
+            puts output
+    end
+
     def create_instance(instance_name, sg_id, subnet_id)
 
         puts "Check if instance exists"
@@ -218,24 +240,8 @@ class AwsHandler
             instance.tags.each() do |tag|
                 if (tag.key == "Name" and tag.value == instance_name)
                     puts "Instance already exists. Public DNS adress is #{instance.public_dns_name}"
-                    
-                    Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem']) do |ssh|
-                        output = ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible")
-                        puts output
-                        output = ssh.exec!("ansible -v")
-                        puts output
-                        output = ssh.exec!("sudo su && echo '[polip]' >> /etc/ansible/hosts && echo 'localhost ansible_connection=local' >> /etc/ansible/hosts")
-                        puts output
-=begin
-                        output = ssh.exec!("ansible-galaxy install geerlingguy.drupal")
-                        puts output
-                        output = Net::SCP.upload!(instance.public_dns_name, 'ubuntu', "/site.yml", "/tmp", :keys => [Dir.home + '/' + KEY_NAME + '.pem'])
-                        puts output
-                        output = ssh.exec!("ansible-playbook /tmp/site.yml")
-                        puts output
-=end
+                    install_ansible_lamp_stack_and_drupal()
                     end
-
                     return
                 end
             end
@@ -263,6 +269,7 @@ class AwsHandler
         # Name the instance 'TestInstance' and give it the Group tag 'TestGroup'
         instance.batch_create_tags({ tags: [{ key: 'Name', value: instance_name }, { key: 'Group', value: 'TestGroup' }]})
 
-        puts "Instance created"
+        install_ansible_lamp_stack_and_drupal()
+        puts "Instance created and drupal is available at: http://#{instance.public_dns_name}"
     end
 end
