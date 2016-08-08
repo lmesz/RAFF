@@ -1,6 +1,7 @@
 require 'aws-sdk'
 require 'net/ssh'
 require 'net/scp'
+require 'net/http'
 
 class AwsHandler
     REGION = 'us-east-1'
@@ -285,4 +286,24 @@ class AwsHandler
 
         install_ansible_lamp_stack_and_drupal(inst)
     end
+
+    def status(instance_name)
+        @ec2.instances.each() do |instance|
+            instance.tags.each() do |tag|
+                if (tag.key == "Name" and tag.value == instance_name)
+                    begin
+                        if Net::HTTP.get_response(instance.public_dns_name, '/').body.include? "drupal"
+                            puts "Drupal is available at http://#{instance.public_dns_name}"
+                            return
+                        end
+                    rescue => e
+                        puts "Drupal is not available, because nothing listen at port 80!"
+                        return
+                    end
+                    puts "Drupal is not available, the host is listen on port 80, but doesn't serve drupal site!"
+                end
+            end
+        end
+    end
+
 end
