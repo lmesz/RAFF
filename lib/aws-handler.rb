@@ -211,7 +211,7 @@ class AwsHandler
     end
 
     def install_ansible_lamp_stack_and_drupal(instance)
-        Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem']) do |ssh|
+        Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem'], :paranoid => false) do |ssh|
             puts "Install ansible, but the default that is in the repo is too old so use custom ppa"
             ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible") do |ch, stream, data|
                 puts "[#{ch[:host]} : #{stream}] #{data}"
@@ -279,6 +279,10 @@ class AwsHandler
         # Name the instance 'TestInstance' and give it the Group tag 'TestGroup'
         instance.batch_create_tags({ tags: [{ key: 'Name', value: instance_name }, { key: 'Group', value: 'TestGroup' }]})
 
-        install_ansible_lamp_stack_and_drupal(instance[0])
+        inst = @ec2.instance(instance[0].id)
+
+        puts "The created instance public DNS address is: #{inst.public_dns_name}"
+
+        install_ansible_lamp_stack_and_drupal(inst)
     end
 end
