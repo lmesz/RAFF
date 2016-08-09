@@ -5,6 +5,14 @@ require './lib/aws-handler'
 
 INSTANCE_NAME = "OTestInstance"
 
+def background()
+    require 'sinatra'
+
+    get '/' do
+        'Holari-hollari-hollari-ho!!!'
+    end
+end
+
 def deploy()
     handler = AwsHandler.new
     handler.create_key_if_not_exists()
@@ -32,6 +40,10 @@ ARGV << "-h" if ARGV.empty?
 options = {}
 optparse = OptionParser.new do |opts|
     opts.banner = "Usage: #{$0} [options]"
+
+    opts.on("-b", "--background", "Run in the background and offer restful API. The following endpoints available /deploy, /pause, /restart, /status") do |b|
+        background()
+    end
 
     opts.on("-d", "--deploy", "Deploy a new drupal cluster") do |l|
         deploy
