@@ -13,14 +13,14 @@ prepare_ansible() {
     cat <<EOF > /tmp/hosts.yml
     [local]
     localhost ansible_connection=local
-    EOF
+EOF
     cat <<EOF > /tmp/site.yml
     ---
     - hosts: local
       become: yes
       roles:
         - geerlingguy.drupal
-    EOF
+EOF
     sudo ansible-galaxy install geerlingguy.drupal
 }
 
