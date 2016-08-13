@@ -211,39 +211,6 @@ class AwsHandler
         return sg.id
     end
 
-    def install_ansible_lamp_stack_and_drupal(instance)
-        Net::SSH.start(instance.public_dns_name, 'ubuntu', :keys => [Dir.home + '/' + KEY_NAME + '.pem'], :paranoid => false) do |ssh|
-            puts "Install ansible, but the default that is in the repo is too old so use custom ppa"
-            ssh.exec!("sudo apt-get update && sudo apt-get install -y software-properties-common && sudo apt-add-repository ppa:ansible/ansible -y && sudo apt-get update && sudo apt-get install -y ansible") do |ch, stream, data|
-                puts "[#{ch[:host]} : #{stream}] #{data}"
-            end
-            puts "Ansible version is"
-            puts ssh.exec!("ansible --version")
-            puts "We use a trusty image and the used role is based on php7 so we need to add another custom ppa (it is from the maintaner of the php in debian so not too risky (hope so...) )"
-            ssh.exec!("sudo add-apt-repository ppa:ondrej/php -y && sudo apt-get update") do |ch, stream, data|
-                puts "[#{ch[:host]} : #{stream}] #{data}"
-            end
-            puts "We need to install php mod for apache by hand ..."
-            ssh.exec!("sudo apt-get install -y libapache2-mod-php7.0") do |ch, stream, data|
-                puts "[#{ch[:host]} : #{stream}] #{data}"
-            end
-            puts "Add host for ansible"
-            ssh.scp.upload!(File.dirname(__FILE__) + "/hosts.yml", "/tmp")
-            ssh.scp.upload!(File.dirname(__FILE__) + "/site.yml", "/tmp")
-            puts "There is a role in ansible galaxy for drupal that I use. It contains all the necessary package (except libapache2-mod-php7.0 (how did he test it ?)"
-            ssh.exec!("sudo ansible-galaxy install geerlingguy.drupal") do |ch, stream, data|
-                puts "[#{ch[:host]} : #{stream}] #{data}"
-            end
-            puts "Install the drupal role to localhost. Let's rock!"
-            ssh.exec!("ansible-playbook -i /tmp/hosts.yml /tmp/site.yml") do |ch, stream, data|
-                puts "[#{ch[:host]} : #{stream}] #{data}"
-            end
-            puts "We don't need the installed apache default page so remove it!"
-            puts ssh.exec!("sudo find /etc/apache2/sites-enabled -type l -delete && sudo apache2ctl restart")
-            puts "Instance created and drupal is available at: http://#{instance.public_dns_name}"
-        end
-    end
-
     def create_instance(instance_name, sg_id, subnet_id)
 
         puts "Check if instance exists"
@@ -252,7 +219,6 @@ class AwsHandler
             instance.tags.each() do |tag|
                 if (tag.key == "Name" and tag.value == instance_name)
                     puts "Instance already exists. Public DNS adress is #{instance.public_dns_name}"
-                    install_ansible_lamp_stack_and_drupal(instance)
                     return
                 end
             end
@@ -260,10 +226,13 @@ class AwsHandler
 
         puts "Instance does not exists, Create instance ..."
 
+        user_data = File.read("/conf/user.data")
+
         instance = @ec2.create_instances({
           image_id: 'ami-2d39803a',
           min_count: 1,
           max_count: 1,
+          user_data: Base64.encode64(user_data),
           key_name: KEY_NAME,
           instance_type: 't2.micro',
           network_interfaces: [{
@@ -283,8 +252,6 @@ class AwsHandler
         inst = @ec2.instance(instance[0].id)
 
         puts "The created instance public DNS address is: #{inst.public_dns_name}"
-
-        install_ansible_lamp_stack_and_drupal(inst)
     end
 
     def status(instance_name)
