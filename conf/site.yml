@@ -1,8 +1,0 @@
----
-
-- hosts: local
-
-  become: yes
-
-  roles:
-    - geerlingguy.drupal

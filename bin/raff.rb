@@ -3,61 +3,62 @@
 require 'optparse'
 require './lib/aws-handler'
 
-INSTANCE_NAME = "OTestInstance"
+INSTANCE_NAME = "UTestInstance"
 
 def background()
-    require 'sinatra'
+  require 'sinatra'
 
-    get '/' do
-        'Holari-hollari-hollari-ho!!!'
-    end
+  get '/' do
+    'Holari-hollari-hollari-ho!!!'
+  end
 end
 
 def deploy()
-    handler = AwsHandler.new
-    handler.create_key_if_not_exists()
-    vpc_id = handler.create_vpc_if_not_exists()
-    subnet_id = handler.create_subnet_if_not_exists(vpc_id)
-    sg_id = handler.create_security_group_if_not_exists(vpc_id)
-    handler.create_instance(INSTANCE_NAME, sg_id, subnet_id)
+  handler = AwsHandler.new
+  handler.create_key_if_not_exists()
+  vpc_id = handler.create_vpc_if_not_exists()
+  subnet_id = handler.create_subnet_if_not_exists(vpc_id)
+  sg_id = handler.create_security_group_if_not_exists(vpc_id)
+  handler.create_instance(INSTANCE_NAME, sg_id, subnet_id)
+  return
 end
 
 def pause()
-    puts "Paused!"
+  puts "Paused!"
 end
 
 def restart()
-    puts "Restarted!"
+  puts "Restarted!"
 end
 
 def status()
-    handler = AwsHandler.new
-    handler.status(INSTANCE_NAME)
+  handler = AwsHandler.new
+  handler.status(INSTANCE_NAME)
 end
 
 ARGV << "-h" if ARGV.empty?
 
 options = {}
 optparse = OptionParser.new do |opts|
-    opts.banner = "Usage: #{$0} [options]"
+  opts.banner = "Usage: #{$0} [options]"
 
-    opts.on("-b", "--background", "Run in the background and offer restful API. The following endpoints available /deploy, /pause, /restart, /status") do |b|
-        background()
-    end
+  opts.on("-b", "--background", "Run in the background and offer restful API. The following endpoints available /deploy, /pause, /restart, /status") do |b|
+    background()
+  end
 
-    opts.on("-d", "--deploy", "Deploy a new drupal cluster") do |l|
-        deploy
-    end
+  opts.on("-d", "--deploy", "Deploy a new drupal cluster") do |l|
+    deploy
+  end
 
-    opts.on("-p", "--pause", "Pause the drupal cluster") do |p|
-        pause
-    end
+  opts.on("-p", "--pause", "Pause the drupal cluster") do |p|
+    pause
+  end
 
-    opts.on("-r", "--restart", "Restart already paused cluster!") do |r|
-        restart
-    end
+  opts.on("-r", "--restart", "Restart already paused cluster!") do |r|
+    restart
+  end
 
-    opts.on("-s", "--status", "Check if cluster available!") do |s|
-        status
-    end
+  opts.on("-s", "--status", "Check if cluster available!") do |s|
+    status
+  end
 end.parse!
