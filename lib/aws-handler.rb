@@ -209,7 +209,7 @@ class AwsHandler
 
     puts 'Instance does not exists, Create instance ...'
 
-    user_data = File.read(File.join(File.dirname(__FILE__), '..', 'conf' , 'user.data'))
+    user_data = File.read(File.join(File.dirname(__FILE__), '..', 'conf', 'user.data'))
 
     instance = @ec2.create_instances({
                                          image_id: 'ami-2d39803a',
@@ -242,13 +242,15 @@ class AwsHandler
     if instance.first.instance_of? Aws::EC2::Instance
       puts "Instance already exists. Public DNS adress is #{instance.first.public_dns_name}"
       begin
-        body = Net::HTTP.get_response(instance.first.public_dns_name, '/').body
-        if body.include? 'drupal'
-          puts "Drupal is available at http://#{instance.public_dns_name}"
+        uri = URI("http://#{instance.first.public_dns_name}/")
+        res = Net::HTTP.get_response(uri)
+
+        if res.body.include? "drupal"
+          puts "Drupal is available at http://#{instance.first.public_dns_name}"
         else
           puts 'Drupal is not available, the host is listen on port 80, but does not serve drupal site!'
         end
-      rescue => e
+      rescue Timeout::Error, SocketError
         puts 'Drupal is not available, because nothing listen at port 80!'
       end
     end
