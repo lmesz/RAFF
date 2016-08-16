@@ -209,7 +209,7 @@ class AwsHandler
 
     puts 'Instance does not exists, Create instance ...'
 
-    user_data = File.read('/conf/user.data')
+    user_data = File.read(File.join(File.dirname(__FILE__), '..', 'conf' , 'user.data'))
 
     instance = @ec2.create_instances({
                                          image_id: 'ami-2d39803a',

@@ -3,7 +3,7 @@
 require 'optparse'
 require './lib/aws-handler'
 
-INSTANCE_NAME = "UTestInstance"
+INSTANCE_NAME = "WTestInstance"
 
 def background()
   require 'sinatra'
@@ -20,7 +20,6 @@ def deploy()
   subnet_id = handler.create_subnet_if_not_exists(vpc_id)
   sg_id = handler.create_security_group_if_not_exists(vpc_id)
   handler.create_instance(INSTANCE_NAME, sg_id, subnet_id)
-  return
 end
 
 def pause()
