@@ -19,6 +19,7 @@ class AwsHandler
     if @ec2.key_pairs(filters: [{name: 'key-name', values: [KEY_NAME] }]).first
       @logger.info('Key exists check if it is downloaded ...')
       create_key unless is_key_downloaded
+      return
     end
     create_key
   end
