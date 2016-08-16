@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require './lib/aws-handler'
+require './lib/aws_drupal_cluster_handler'
 
 INSTANCE_NAME = "WTestInstance"
 
-def background()
+def background
   require 'sinatra'
 
   get '/' do
@@ -13,25 +13,21 @@ def background()
   end
 end
 
-def deploy()
-  handler = AwsHandler.new
-  handler.create_key_if_not_exists()
-  vpc_id = handler.create_vpc_if_not_exists()
-  subnet_id = handler.create_subnet_if_not_exists(vpc_id)
-  sg_id = handler.create_security_group_if_not_exists(vpc_id)
-  handler.create_instance(INSTANCE_NAME, sg_id, subnet_id)
+def deploy
+  aws_drupal_cluster_handler = AwsDrupalClusterHandler.new
+  aws_drupal_cluster_handler.deploy(INSTANCE_NAME)
 end
 
-def pause()
+def pause
   puts "Paused!"
 end
 
-def restart()
+def restart
   puts "Restarted!"
 end
 
-def status()
-  handler = AwsHandler.new
+def status
+  handler = AwsDrupalClusterHandler.new
   handler.status(INSTANCE_NAME)
 end
 
@@ -42,7 +38,7 @@ optparse = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
 
   opts.on("-b", "--background", "Run in the background and offer restful API. The following endpoints available /deploy, /pause, /restart, /status") do |b|
-    background()
+    background
   end
 
   opts.on("-d", "--deploy", "Deploy a new drupal cluster") do |l|

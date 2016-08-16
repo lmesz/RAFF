@@ -4,17 +4,25 @@ require 'net/scp'
 require 'net/http'
 require 'aws-sdk'
 
-class AwsHandler
+class AwsDrupalClusterHandler
   REGION = 'us-east-1'.freeze
   KEY_NAME = 'TestKey'.freeze
 
 
-  def initialize()
+  def initialize
     @ec2 = Aws::EC2::Resource.new(region: REGION)
     @logger = Logger.new(STDOUT)
   end
 
-  def create_key_if_not_exists()
+  def deploy(instance_name)
+    create_key_if_not_exists
+    vpc_id = create_vpc_if_not_exists
+    subnet_id = create_subnet_if_not_exists(vpc_id)
+    sg_id = create_security_group_if_not_exists(vpc_id)
+    create_instance(instance_name, sg_id, subnet_id)
+  end
+
+  def create_key_if_not_exists
     @logger.info('Check if key exists ...')
     if @ec2.key_pairs(filters: [{name: 'key-name', values: [KEY_NAME] }]).first
       @logger.info('Key exists check if it is downloaded ...')
@@ -24,18 +32,18 @@ class AwsHandler
     create_key
   end
 
-  def is_key_downloaded()
+  def is_key_downloaded
     return File.file?(File.join(Dir.home, "#{KEY_NAME}.pem"))
   end
 
-  def create_key()
+  def create_key
     client = Aws::EC2::Client.new(region: REGION)
     key_pair = client.create_key_pair({key_name: KEY_NAME})
     filename = File.join(Dir.home, "#{KEY_NAME}.pem")
     File.open(filename, 'w') { |file| file.write(key_pair.key_material) }
   end
 
-  def create_vpc_if_not_exists()
+  def create_vpc_if_not_exists
 
     vpc_name = 'TestVPC'
 
