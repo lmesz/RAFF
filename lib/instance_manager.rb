@@ -60,4 +60,16 @@ class InstanceManager
 
     @logger.info("The created instance public DNS address is: #{inst.public_dns_name}")
   end
+
+  def stop_instance(instance_name)
+    instance = @ec2.instances(filters: [{name: 'tag:Name', values: [instance_name]}])
+    if instance.first.instance_of? Aws::EC2::Instance
+      @logger.info("Instance already exists.")
+      @ec2.stop()
+      @ec2.client.wait_until(:instance_stopped, {instance_ids: [instance[0].id]})
+      return
+    end
+
+    @logger.info('Instance does not exists.')
+  end
 end

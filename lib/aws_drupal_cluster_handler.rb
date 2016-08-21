@@ -38,4 +38,8 @@ class AwsDrupalClusterHandler < InstanceManager
     @instance_manager.status(instance_name)
   end
 
+  def stop(instance_name)
+    @instance_manager.stop(instance_name)
+  end
+
 end
