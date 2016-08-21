@@ -64,9 +64,10 @@ class InstanceManager
   def stop_instance(instance_name)
     instance = @ec2.instances(filters: [{name: 'tag:Name', values: [instance_name]}])
     if instance.first.instance_of? Aws::EC2::Instance
-      @logger.info("Instance already exists.")
-      @ec2.stop()
-      @ec2.client.wait_until(:instance_stopped, {instance_ids: [instance[0].id]})
+      @logger.info("Instance already exists. #{instance.first.id}")
+      instance.first.stop
+      @ec2.client.wait_until(:instance_stopped, {instance_ids: [instance.first.id]})
+      @logger.info('Instance stopped.')
       return
     end
 

@@ -4,8 +4,6 @@ require 'thor'
 
 require './lib/aws_drupal_cluster_handler'
 
-INSTANCE_NAME = "WTestInstance"
-
 class Raff < Thor
   desc "deploy <instance_name>", "Deploy a drupal cluster"
 
@@ -16,14 +14,14 @@ class Raff < Thor
 
   desc "stop <instance_name>", "Suspend current drupal cluster"
 
-  def stop
+  def stop(instance_name)
     aws_drupal_cluster_handler = AwsDrupalClusterHandler.new
     aws_drupal_cluster_handler.stop(instance_name)
   end
 
   desc "status <instance_name>", "Get current status of the drupal cluster"
 
-  def status
+  def status(instance_name)
     aws_drupal_cluster_handler = AwsDrupalClusterHandler.new
     aws_drupal_cluster_handler.status(instance_name)
   end
