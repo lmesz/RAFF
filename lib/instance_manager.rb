@@ -1,7 +1,8 @@
 class InstanceManager
-  def initialize(ec2, logger)
+  def initialize(ec2, logger, keyname)
     @ec2 = ec2
     @logger = logger
+    @key_name = keyname
   end
 
   def status(instance_name)
@@ -41,7 +42,7 @@ class InstanceManager
                                          min_count: 1,
                                          max_count: 1,
                                          user_data: Base64.encode64(user_data),
-                                         key_name: KEY_NAME,
+                                         key_name: @key_name,
                                          instance_type: 't2.micro',
                                          network_interfaces: [{
                                                                   device_index: 0,

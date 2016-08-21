@@ -11,16 +11,17 @@ require 'aws-sdk'
 
 class AwsDrupalClusterHandler < InstanceManager
   REGION = 'us-east-1'.freeze
+  KEY_NAME = 'TestKey'.freeze
 
   def initialize
     @ec2 = Aws::EC2::Resource.new(region: REGION)
     @logger = Logger.new(STDOUT)
-    @instance_manager = InstanceManager.new(@ec2, @logger)
+    @instance_manager = InstanceManager.new(@ec2, @logger, KEY_NAME)
   end
 
   def deploy(instance_name)
-    key_manager = KeyManager.new(@ec2, @logger)
-    key_manager.create_key_if_not_exists
+    key_manager = KeyManager.new(@ec2, @logger, KEY_NAME)
+    key_manager.import_key_if_not_exists
 
     vpc_manager = VpcManager.new(@ec2, @logger)
     vpc_id = vpc_manager.create_vpc_if_not_exists
