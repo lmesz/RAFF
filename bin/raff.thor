@@ -3,6 +3,7 @@
 require 'thor'
 
 require './lib/aws_drupal_cluster_handler'
+require './lib/aws_rest'
 
 class Raff < Thor
   desc 'deploy <instance_name>', 'Deploy a drupal cluster'
@@ -26,14 +27,10 @@ class Raff < Thor
     aws_drupal_cluster_handler.status(instance_name)
   end
 
-  desc 'start', 'Start as a service, after the start the scripts listen on lolcahost:6666 port and exposes the following endpoint. /deploy, /stop, /status'
+  desc 'start', 'Start as a service, after the start the scripts listen on localhost:6666 port and exposes the following endpoint. /deploy, /stop, /status'
 
   def start
-    require 'sinatra'
-
-    get '/' do
-      'Holari-hollari-hollari-ho!!!'
-    end
+    AwsRest.run!
   end
 end
 

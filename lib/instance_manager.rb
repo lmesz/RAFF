@@ -18,8 +18,10 @@ class InstanceManager
         else
           @logger.info('Drupal is not available, the host is listen on port 80, but does not serve drupal site!')
         end
+        return 0
       rescue Timeout::Error, SocketError
         @logger.error('Drupal is not available, because nothing listen at port 80!')
+        return 1
       end
     end
   end

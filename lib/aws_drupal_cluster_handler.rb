@@ -31,15 +31,15 @@ class AwsDrupalClusterHandler < InstanceManager
 
     security_group_manager = SecurityGroupManager.new(@ec2, @logger)
     sg_id = security_group_manager.create_security_group_if_not_exists(vpc_id)
-    @instance_manager.create_instance(instance_name, sg_id, subnet_id)
+    return @instance_manager.create_instance(instance_name, sg_id, subnet_id)
   end
 
   def status(instance_name)
-    @instance_manager.status(instance_name)
+    return @instance_manager.status(instance_name)
   end
 
   def stop(instance_name)
-    @instance_manager.stop_instance(instance_name)
+    return @instance_manager.stop_instance(instance_name)
   end
 
 end
