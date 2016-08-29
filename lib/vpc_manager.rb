@@ -33,7 +33,10 @@ class VpcManager
 
     igw = @ec2.create_internet_gateway
 
+    sleep(10)
+
     igw.create_tags({ tags: [{ key: 'Name', value: internet_gateway_name }] })
+
     igw.attach_to_vpc(vpc_id: vpc_id)
     return igw.id
   end
@@ -52,12 +55,18 @@ class VpcManager
 
     vpc = @ec2.create_vpc({ cidr_block: '10.200.0.0/16' })
 
+    vpc.wait_until_exists
+
     vpc.modify_attribute({
-                           enable_dns_support: { value: true },
+                           enable_dns_support: { value: true }
+                         })
+
+    vpc.modify_attribute({
                            enable_dns_hostnames: { value: true }
                          })
 
     vpc.create_tags({ tags: [{ key: 'Name', value: vpc_name }] })
+
     igw_id = attach_vpc_to_internet_gateway(vpc.vpc_id)
 
     create_route_table_to_internet_gateway(vpc.vpc_id, igw_id)

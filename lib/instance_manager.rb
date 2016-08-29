@@ -18,12 +18,13 @@ class InstanceManager
         else
           @logger.info('Drupal is not available, the host is listen on port 80, but does not serve drupal site!')
         end
-        return 0
+        return true
       rescue Timeout::Error, SocketError
         @logger.error('Drupal is not available, because nothing listen at port 80!')
-        return 1
+        return false
       end
     end
+    return false
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
@@ -31,8 +32,13 @@ class InstanceManager
 
     instance = @ec2.instances(filters: [{name: 'tag:Name', values: [instance_name]}])
     if instance.first.instance_of? Aws::EC2::Instance
-      @logger.info("Instance already exists. Public DNS adress is #{instance.first.public_dns_name}")
-      return
+      state_of_instance = instance.first.state.name
+      if state_of_instance.eql? "running"
+        @logger.info("Instance already exists. Public DNS adress is #{instance.first.public_dns_name}")
+        return true
+      end
+      @logger.info('Instance already exists, but not running')
+      return false
     end
 
     @logger.info('Instance does not exists, Create instance ...')
@@ -54,12 +60,15 @@ class InstanceManager
                                                               }]
                                      })
 
-    @ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance[0].id]})
+    instance[0].wait_until_running
 
     instance.batch_create_tags({tags: [{key: 'Name', value: instance_name}, {key: 'Group', value: 'TestGroup'}]})
 
     inst = @ec2.instance(instance[0].id)
 
+    if not inst.instance_of? Aws::EC2::Instance
+      return false
+    end
     @logger.info("The created instance public DNS address is: #{inst.public_dns_name}")
   end
 
@@ -67,12 +76,32 @@ class InstanceManager
     instance = @ec2.instances(filters: [{name: 'tag:Name', values: [instance_name]}])
     if instance.first.instance_of? Aws::EC2::Instance
       @logger.info("Instance already exists. #{instance.first.id}")
-      instance.first.stop
-      @ec2.client.wait_until(:instance_stopped, {instance_ids: [instance.first.id]})
+      begin
+        instance.first.stop
+      rescue Aws::EC2::Errors::IncorrectInstanceState
+        @logger.error('Instance can not stopped because of it\'s state.')
+        return false
+      end
+      instance.first.wait_until_stopped
       @logger.info('Instance stopped.')
-      return
+      return true
     end
 
     @logger.info('Instance does not exists.')
+    return false
+  end
+
+  def terminate_instance(instance_name)
+    instance = @ec2.instances(filters: [{name: 'tag:Name', values: [instance_name]}])
+    if instance.first.instance_of? Aws::EC2::Instance
+      @logger.info("Instance already exists. #{instance.first.id}")
+      instance.first.terminate
+      instance.first.wait_until_terminated
+      @logger.info('Instance terminated.')
+      return true
+    end
+
+    @logger.info('Instance does not exists.')
+    return false
   end
 end

@@ -24,6 +24,8 @@ class SubnetManager
                                     availability_zone: 'us-east-1c'
                                 })
 
+    subnet.wait_until {|subnet| subnet.state == 'available'}
+
     subnet.create_tags({tags: [{key: 'Name', value: subnet_name}]})
     return subnet.id
   end

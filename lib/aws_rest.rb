@@ -7,7 +7,7 @@ class AwsRest < Sinatra::Base
 
     def initialize(app = nil)
       super()
-      @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new
+      @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(Logger.new(STDOUT))
     end
 
     post '/deploy/:instance_name' do
@@ -16,6 +16,10 @@ class AwsRest < Sinatra::Base
 
     post '/stop/:instance_name' do
       @aws_drupal_cluster_handler.stop(params[:instance_name])
+    end
+
+    post '/terminate/:instance_name' do
+      @aws_drupal_cluster_handler.terminate(params[:instance_name])
     end
 
     get '/status/:instance_name' do

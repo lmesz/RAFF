@@ -13,9 +13,9 @@ class AwsDrupalClusterHandler < InstanceManager
   REGION = 'us-east-1'.freeze
   KEY_NAME = 'TestKey'.freeze
 
-  def initialize
+  def initialize(logger)
+    @logger = logger
     @ec2 = Aws::EC2::Resource.new(region: REGION)
-    @logger = Logger.new(STDOUT)
     @instance_manager = InstanceManager.new(@ec2, @logger, KEY_NAME)
   end
 
@@ -40,6 +40,10 @@ class AwsDrupalClusterHandler < InstanceManager
 
   def stop(instance_name)
     return @instance_manager.stop_instance(instance_name)
+  end
+
+  def terminate(instance_name)
+    return @instance_manager.terminate_instance(instance_name)
   end
 
 end
