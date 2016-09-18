@@ -1,4 +1,6 @@
 require 'sinatra/base'
+require 'json'
+
 require './lib/aws_drupal_cluster_handler'
 
 class AwsRest < Sinatra::Base
@@ -23,6 +25,10 @@ class AwsRest < Sinatra::Base
     end
 
     get '/status/:instance_name' do
-      @aws_drupal_cluster_handler.status(params[:instance_name])
+      if not @aws_drupal_cluster_handler.status(params[:instance_name])
+        content_type :json
+        status 404
+        {:result => 'error', :message => 'Instance not found'}.to_json
+      end
     end
 end
