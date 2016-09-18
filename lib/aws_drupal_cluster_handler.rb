@@ -13,9 +13,9 @@ class AwsDrupalClusterHandler < InstanceManager
   REGION = 'us-east-1'.freeze
   KEY_NAME = 'TestKey'.freeze
 
-  def initialize(logger)
+  def initialize(logger, ec2=Aws::EC2::Resource.new(region: REGION))
     @logger = logger
-    @ec2 = Aws::EC2::Resource.new(region: REGION)
+    @ec2 = ec2
     @instance_manager = InstanceManager.new(@ec2, @logger, KEY_NAME)
   end
 

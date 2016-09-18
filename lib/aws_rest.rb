@@ -7,9 +7,9 @@ class AwsRest < Sinatra::Base
 
     set :port, 6666
 
-    def initialize(app = nil)
+    def initialize(app = nil, adch=AwsDrupalClusterHandler.new(Logger.new(STDOUT)))
       super()
-      @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(Logger.new(STDOUT))
+      @aws_drupal_cluster_handler = adch
     end
 
     post '/deploy/:instance_name' do

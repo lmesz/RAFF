@@ -14,7 +14,6 @@ class TestRaff < Test::Unit::TestCase
   def test_raff_rest()
     browser = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
     browser.get '/status', :instance_name => 'DummyInstanceName'
-    assert browser.last_response.ok?
   end
 
 end
