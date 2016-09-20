@@ -17,9 +17,10 @@ class InstanceManager
           @logger.info("Drupal is available at http://#{instance.first.public_dns_name}")
         else
           @logger.info('Drupal is not available, the host is listen on port 80, but does not serve drupal site!')
+          return false
         end
         return true
-      rescue Timeout::Error, SocketError
+      rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
         @logger.error('Drupal is not available, because nothing listen at port 80!')
         return false
       end
@@ -70,6 +71,23 @@ class InstanceManager
       return false
     end
     @logger.info("The created instance public DNS address is: #{inst.public_dns_name}")
+
+    return wait_for_drupal_to_be_installed(instance_name)
+  end
+
+  def wait_for_drupal_to_be_installed(instance_name)
+    timeout = 600
+
+    while not status(instance_name) do
+      if timeout == 0
+        return false
+      end
+      @logger.info("Drupal is not installed, wait one more sec")
+      sleep(1)
+      timeout -= 1
+    end
+
+    return true
   end
 
   def stop_instance(instance_name)
