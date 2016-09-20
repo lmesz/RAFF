@@ -4,6 +4,8 @@ MAINTAiNER lacienator@gmail.com
 
 ADD . /code
 
+RUN chmod 0400 /code/conf/TestKey*
+
 WORKDIR /code
 
 RUN bundle install

@@ -77,14 +77,15 @@ class InstanceManager
 
   def wait_for_drupal_to_be_installed(instance_name)
     timeout = 600
+    step = 5
 
     while not status(instance_name) do
       if timeout == 0
         return false
       end
-      @logger.info("Drupal is not installed, wait one more sec")
-      sleep(1)
-      timeout -= 1
+      @logger.info("Drupal is not installed, wait #{step} more sec")
+      sleep(step)
+      timeout -= step
     end
 
     return true
