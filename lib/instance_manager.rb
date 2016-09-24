@@ -8,7 +8,8 @@ class InstanceManager
   end
 
   def status(instance_name)
-    instance = @ec2.instances(filters: [{ name: 'tag:Name', values: [instance_name] }])
+    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                          values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
       @logger.info("Instance already exists. Public DNS adress is #{instance.first.public_dns_name}")
       begin
@@ -27,13 +28,14 @@ class InstanceManager
         return false
       end
     end
-    return false
+    false
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
     @logger.info('Check if instance exists')
 
-    instance = @ec2.instances(filters: [{ name: 'tag:Name', values: [instance_name] }])
+    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                          values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
       state_of_instance = instance.first.state.name
       if state_of_instance.eql? 'running'
@@ -46,7 +48,10 @@ class InstanceManager
 
     @logger.info('Instance does not exists, Create instance ...')
 
-    user_data = File.read(File.join(File.dirname(__FILE__), '..', 'conf', 'user.data'))
+    user_data = File.read(File.join(File.dirname(__FILE__),
+                                    '..',
+                                    'conf',
+                                    'user.data'))
 
     instance = @ec2.create_instances(image_id: 'ami-2d39803a',
                                      min_count: 1,
@@ -63,7 +68,10 @@ class InstanceManager
 
     instance[0].wait_until_running
 
-    instance.batch_create_tags(tags: [{ key: 'Name', value: instance_name }, { key: 'Group', value: 'TestGroup' }])
+    instance.batch_create_tags(tags: [{ key: 'Name',
+                                        value: instance_name },
+                                      { key: 'Group',
+                                        value: 'TestGroup' }])
 
     inst = @ec2.instance(instance[0].id)
 
@@ -88,7 +96,8 @@ class InstanceManager
   end
 
   def stop_instance(instance_name)
-    instance = @ec2.instances(filters: [{ name: 'tag:Name', values: [instance_name] }])
+    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                          values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
       @logger.info("Instance already exists. #{instance.first.id}")
       begin
@@ -107,7 +116,8 @@ class InstanceManager
   end
 
   def terminate_instance(instance_name)
-    instance = @ec2.instances(filters: [{ name: 'tag:Name', values: [instance_name] }])
+    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                          values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
       @logger.info("Instance already exists. #{instance.first.id}")
       instance.first.terminate

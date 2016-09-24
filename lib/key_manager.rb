@@ -6,10 +6,16 @@ class KeyManager < AwsBase
   attr_reader :key_path
   attr_reader :key_name
 
-  def initialize(ec2 = Aws::EC2::Resource.new(:region => 'us-east-1', :stub_responses => true), logger = Logger.new(STDOUT), key_path = ENV['key_path'], key_name = ENV['key_name'])
+  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
+                                              stub_responses: true),
+                 logger = Logger.new(STDOUT),
+                 key_path = ENV['key_path'],
+                 key_name = ENV['key_name'])
     super(ec2, logger)
     if key_path.nil? || key_name.nil?
-      raise KeyManagerException, 'The "key_path" and "key_name" environment variable need to be set if not given during initialization'
+      raise KeyManagerException, 'The "key_path" and "key_name" environment'\
+                                 ' variable need to be set if not given during'\
+                                 ' initialization'
     end
     @key_path = key_path
     @key_name = key_name
@@ -24,7 +30,8 @@ class KeyManager < AwsBase
 
   def import_key_if_not_exists
     @logger.info('Check if key exists ...')
-    if @ec2.key_pairs(filters: [{ name: 'key-name', values: [@key_name] }]).first
+    if @ec2.key_pairs(filters: [{ name: 'key-name',
+                                  values: [@key_name] }]).first
       @logger.info('Key exists')
       return
     end
