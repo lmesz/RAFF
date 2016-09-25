@@ -1,3 +1,4 @@
+require 'spec_helper'
 require 'aws-sdk'
 require 'logger'
 
