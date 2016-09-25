@@ -1,21 +1,26 @@
+require 'aws-sdk'
+
 class VpcManager
-  def initialize(ec2, logger)
+  attr_reader :ec2
+  attr_reader :logger
+
+  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1'), logger = Logger.new(STDOUT))
     @ec2 = ec2
     @logger = logger
   end
 
   def create_route_table_to_internet_gateway(vpc_id, igw_id)
     @logger.info('Add the internet gateway to the route tables ...')
-    route_table = @ec2.route_tables(filters: [{name: 'vpc-id', values: [vpc_id]}])
+    route_table = @ec2.route_tables(filters: [{ name: 'vpc-id', values: [vpc_id] }])
+
     if route_table.first.instance_of? Aws::EC2::RouteTable
       @logger.info('Route found for the vpc ...')
-      route_table.first.create_route({
-                                       destination_cidr_block: '0.0.0.0/0',
-                                       gateway_id: igw_id
-                                     })
+      route_table.first.create_route(destination_cidr_block: '0.0.0.0/0',
+                                     gateway_id: igw_id)
       return
     end
-    @logger.info("Route table not found!")
+
+    @logger.info('Route table not found!')
   end
 
   def attach_vpc_to_internet_gateway(vpc_id)
@@ -35,42 +40,35 @@ class VpcManager
 
     sleep(10)
 
-    igw.create_tags({ tags: [{ key: 'Name', value: internet_gateway_name }] })
+    igw.create_tags(tags: [{ key: 'Name', value: internet_gateway_name }])
 
     igw.attach_to_vpc(vpc_id: vpc_id)
-    return igw.id
+    igw.id
   end
 
   def create_vpc_if_not_exists
-
     vpc_name = 'TestVPC'
 
     @logger.info('Create vpc ...')
     vpc = @ec2.vpcs(filters: [{ name: 'tag:Name', values: [vpc_name] }])
-    if vpc.first.instance_of? Aws::EC2::Vpc
-      return vpc.first.id
-    end
+    return vpc.first.id if vpc.first.instance_of? Aws::EC2::Vpc
 
     @logger.info('VPC does not exists create it')
 
-    vpc = @ec2.create_vpc({ cidr_block: '10.200.0.0/16' })
+    vpc = @ec2.create_vpc(cidr_block: '10.200.0.0/16')
 
     vpc.wait_until_exists
 
-    vpc.modify_attribute({
-                           enable_dns_support: { value: true }
-                         })
+    vpc.modify_attribute(enable_dns_support: { value: true })
 
-    vpc.modify_attribute({
-                           enable_dns_hostnames: { value: true }
-                         })
+    vpc.modify_attribute(enable_dns_hostnames: { value: true })
 
-    vpc.create_tags({ tags: [{ key: 'Name', value: vpc_name }] })
+    vpc.create_tags(tags: [{ key: 'Name', value: vpc_name }])
 
     igw_id = attach_vpc_to_internet_gateway(vpc.vpc_id)
 
     create_route_table_to_internet_gateway(vpc.vpc_id, igw_id)
 
-    return vpc.vpc_id
+    vpc.vpc_id
   end
 end

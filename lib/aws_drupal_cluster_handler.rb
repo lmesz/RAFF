@@ -13,10 +13,9 @@ class AwsDrupalClusterHandler < InstanceManager
   REGION = 'us-east-1'.freeze
   KEY_NAME = 'TestKey'.freeze
 
-  def initialize(logger, ec2=Aws::EC2::Resource.new(region: REGION))
-    @logger = logger
+  def initialize(ec2 = Aws::EC2::Resource.new(region: REGION), logger=Logger.new(STDOUT))
     @ec2 = ec2
-    @instance_manager = InstanceManager.new(@ec2, @logger, KEY_NAME)
+    @logger = logger
   end
 
   def deploy(instance_name)
@@ -31,7 +30,6 @@ class AwsDrupalClusterHandler < InstanceManager
 
     security_group_manager = SecurityGroupManager.new(@ec2, @logger)
     sg_id = security_group_manager.create_security_group_if_not_exists(vpc_id)
-    return @instance_manager.create_instance(instance_name, sg_id, subnet_id)
+    create_instance(instance_name, sg_id, subnet_id)
   end
-
 end

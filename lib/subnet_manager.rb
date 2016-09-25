@@ -1,5 +1,4 @@
 class SubnetManager
-
   def initialize(ec2, logger)
     @ec2 = ec2
     @logger = logger
@@ -10,7 +9,7 @@ class SubnetManager
 
     @logger.info('Check if subnet exists ...')
 
-    subnet = @ec2.subnets(filters: [{name: 'tag:Name', values: [subnet_name]}])
+    subnet = @ec2.subnets(filters: [{ name: 'tag:Name', values: [subnet_name] }])
     if subnet.first.instance_of? Aws::EC2::Subnet
       @logger.info('Subnet exists')
       return subnet.first.id
@@ -18,15 +17,13 @@ class SubnetManager
 
     @logger.info('Subnet does not exists create it')
 
-    subnet = @ec2.create_subnet({
-                                    vpc_id: vpc_id,
-                                    cidr_block: '10.200.10.0/24',
-                                    availability_zone: 'us-east-1c'
-                                })
+    subnet = @ec2.create_subnet(vpc_id: vpc_id,
+                                cidr_block: '10.200.10.0/24',
+                                availability_zone: 'us-east-1c')
 
-    subnet.wait_until {|subnet| subnet.state == 'available'}
+    subnet.wait_until { |subnet| subnet.state == 'available' }
 
-    subnet.create_tags({tags: [{key: 'Name', value: subnet_name}]})
-    return subnet.id
+    subnet.create_tags(tags: [{ key: 'Name', value: subnet_name }])
+    subnet.id
   end
 end
