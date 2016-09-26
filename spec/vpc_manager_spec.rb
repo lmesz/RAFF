@@ -50,11 +50,13 @@ describe 'VpcManager create_vpc_if_not_exists' do
 
   context 'when called and found' do
     it 'returns the id' do
-      expectedvpcid = "42"
+      expectedvpcid = '42'
       loggermock = double('logger')
       allow(loggermock).to receive(:info)
 
-      aws_vpc = Aws::EC2::Vpc.new(:id => "42", :region => 'us-east-1', :stub_responses => true)
+      aws_vpc = Aws::EC2::Vpc.new(id: '42',
+                                  region: 'us-east-1',
+                                  stub_responses: true)
 
       allow(aws_vpc).to receive(:id).and_return(expectedvpcid)
 
