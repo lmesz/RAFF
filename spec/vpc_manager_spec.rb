@@ -25,7 +25,7 @@ end
 
 describe 'VpcManager create_vpc_if_not_exists' do
   context 'when called and not found' do
-    it 'creates one and returns its id' do
+    it 'creates one and return its id' do
       vpcmock = double('vpc')
       allow(vpcmock).to receive(:wait_until_exists)
       allow(vpcmock).to receive(:modify_attribute)

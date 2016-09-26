@@ -10,29 +10,31 @@ class VpcManager
   end
 
   def create_vpc_if_not_exists
-    vpc_name = 'TestVPC'
+    vpc_tag_name = 'TestVPC'
 
     @logger.info('Create vpc ...')
-    vpc = @ec2.vpcs(filters: [{ name: 'tag:Name', values: [vpc_name] }])
+    vpc = @ec2.vpcs(filters: [{ name: 'tag:Name', values: [vpc_tag_name] }])
     return vpc.first.id if vpc.first.instance_of? Aws::EC2::Vpc
 
     @logger.info('VPC does not exists create it')
-
     vpc = @ec2.create_vpc(cidr_block: '0.0.0.0/0')
 
-    vpc.wait_until_exists
-
-    vpc.modify_attribute(enable_dns_support: { value: true })
-
-    vpc.modify_attribute(enable_dns_hostnames: { value: true })
-
-    vpc.create_tags(tags: [{ key: 'Name', value: vpc_name }])
-
-    igw_id = attach_vpc_to_internet_gateway(vpc.vpc_id)
-
-    create_route_table_to_internet_gateway(vpc.vpc_id, igw_id)
+    configure_vpc(vpc, vpc_tag_name)
+    create_igw_for_vpc(vpc.vpc_id)
 
     vpc.vpc_id
+  end
+
+  def configure_vpc(vpc, vpc_tag_name)
+    vpc.wait_until_exists
+    vpc.modify_attribute(enable_dns_support: { value: true })
+    vpc.modify_attribute(enable_dns_hostnames: { value: true })
+    vpc.create_tags(tags: [{ key: 'Name', value: vpc_tag_name }])
+  end
+
+  def create_igw_for_vpc(vpc_id)
+    igw_id = attach_vpc_to_internet_gateway(vpc_id)
+    create_route_table_to_internet_gateway(vpc_id, igw_id)
   end
 
   def attach_vpc_to_internet_gateway(vpc_id)
@@ -53,7 +55,6 @@ class VpcManager
     sleep(10)
 
     igw.create_tags(tags: [{ key: 'Name', value: internet_gateway_name }])
-
     igw.attach_to_vpc(vpc_id: vpc_id)
     igw.id
   end
@@ -71,6 +72,4 @@ class VpcManager
 
     @logger.info('Route table not found!')
   end
-
-
 end
