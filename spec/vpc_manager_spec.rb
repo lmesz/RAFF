@@ -24,8 +24,8 @@ describe 'VpcManager Initialise' do
 end
 
 describe 'VpcManager create_vpc_if_not_exists' do
-  context 'when called and found' do
-    it 'returns the id' do
+  context 'when called and not found' do
+    it 'creates one and returns its id' do
       vpcmock = double('vpc')
       allow(vpcmock).to receive(:wait_until_exists)
       allow(vpcmock).to receive(:modify_attribute)
@@ -36,7 +36,7 @@ describe 'VpcManager create_vpc_if_not_exists' do
       allow(loggermock).to receive(:info)
 
       ec2mock = double('ec2')
-      allow(ec2mock).to receive(:vpcs).and_return({:first=> 'asd'})
+      allow(ec2mock).to receive(:vpcs).and_return(['asd'])
       allow(ec2mock).to receive(:create_vpc).and_return(vpcmock)
 
       vpcmanager = VpcManager.new(ec2mock, loggermock)
@@ -45,6 +45,24 @@ describe 'VpcManager create_vpc_if_not_exists' do
 
       expect(ec2mock).to receive(:vpcs)
       expect(vpcmanager.create_vpc_if_not_exists).to eq(42)
+    end
+  end
+
+  context 'when called and found' do
+    it 'returns the id' do
+      expectedvpcid = "42"
+      loggermock = double('logger')
+      allow(loggermock).to receive(:info)
+
+      aws_vpc = Aws::EC2::Vpc.new(:id => "42", :region => 'us-east-1', :stub_responses => true)
+
+      allow(aws_vpc).to receive(:id).and_return(expectedvpcid)
+
+      ec2mock = double('ec2')
+      allow(ec2mock).to receive(:vpcs).and_return([aws_vpc])
+
+      vpcmanager = VpcManager.new(ec2mock, loggermock)
+      expect(vpcmanager.create_vpc_if_not_exists).to eq(expectedvpcid)
     end
   end
 end

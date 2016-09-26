@@ -7,7 +7,7 @@ class KeyManager
   attr_reader :key_path
   attr_reader :key_name
 
-  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1'), logger = Logger.new(STDOUT), key_path = ENV['key_path'], key_name = ENV['key_name'])
+  def initialize(ec2 = Aws::EC2::Resource.new(:region => 'us-east-1', :stub_responses => true), logger = Logger.new(STDOUT), key_path = ENV['key_path'], key_name = ENV['key_name'])
     @ec2 = ec2
     @logger = logger
     if key_path.nil? || key_name.nil?
