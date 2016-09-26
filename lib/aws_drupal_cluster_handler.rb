@@ -4,9 +4,6 @@ require_relative 'subnet_manager.rb'
 require_relative 'vpc_manager.rb'
 require_relative 'key_manager.rb'
 require 'logger'
-require 'net/ssh'
-require 'net/scp'
-require 'net/http'
 require 'aws-sdk'
 
 class AwsDrupalClusterHandler < InstanceManager

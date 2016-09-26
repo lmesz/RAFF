@@ -1,3 +1,5 @@
+require 'net/http'
+
 class InstanceManager
   def initialize(ec2, logger, keyname)
     @ec2 = ec2
@@ -25,7 +27,7 @@ class InstanceManager
         return false
       end
     end
-    false
+    return false
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
