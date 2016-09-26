@@ -1,15 +1,13 @@
 require 'aws-sdk'
+require 'aws_base'
 
 # This class handle the keys that will be used in aws ec2 instance for ssh.
-class KeyManager
-  attr_reader :ec2
-  attr_reader :logger
+class KeyManager < AwsBase
   attr_reader :key_path
   attr_reader :key_name
 
   def initialize(ec2 = Aws::EC2::Resource.new(:region => 'us-east-1', :stub_responses => true), logger = Logger.new(STDOUT), key_path = ENV['key_path'], key_name = ENV['key_name'])
-    @ec2 = ec2
-    @logger = logger
+    super(ec2, logger)
     if key_path.nil? || key_name.nil?
       raise KeyManagerException, 'The "key_path" and "key_name" environment variable need to be set if not given during initialization'
     end

@@ -1,14 +1,7 @@
 require 'aws-sdk'
+require 'aws_base'
 
-class SubnetManager
-  attr_reader :ec2
-  attr_reader :logger
-
-  def initialize(ec2 = Aws::EC2::Resource.new(:region => 'us-east-1', :stub_responses => true), logger = Logger.new(STDOUT))
-    @ec2 = ec2
-    @logger = logger
-  end
-
+class SubnetManager < AwsBase
   def create_subnet_if_not_exists(vpc_id)
     subnet_name = 'TestSubnet'
 

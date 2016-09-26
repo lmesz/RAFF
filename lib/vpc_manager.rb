@@ -1,14 +1,7 @@
 require 'aws-sdk'
+require 'aws_base'
 
-class VpcManager
-  attr_reader :ec2
-  attr_reader :logger
-
-  def initialize(ec2 = Aws::EC2::Resource.new(:region => 'us-east-1', :stub_responses => true), logger = Logger.new(STDOUT))
-    @ec2 = ec2
-    @logger = logger
-  end
-
+class VpcManager < AwsBase
   def create_vpc_if_not_exists
     vpc_tag_name = 'TestVPC'
 
