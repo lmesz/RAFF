@@ -1,9 +1,7 @@
-class SecurityGroupManager
-  def initialize(ec2, logger)
-    @ec2 = ec2
-    @logger = logger
-  end
+require 'aws-sdk'
+require 'aws_base'
 
+class SecurityGroupManager < AwsBase
   def create_security_group_if_not_exists(vpc_id)
     security_group_name = 'TestSecurityGroup'
 
