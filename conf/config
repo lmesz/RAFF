@@ -1,0 +1,4 @@
+[network-settings]
+proto=tcp
+port=22
+cidr=0.0.0.0/0

@@ -1,7 +1,21 @@
 require 'aws-sdk'
+require 'parseconfig'
 require 'aws_base'
 
 class SecurityGroupManager < AwsBase
+  attr_reader :config
+
+  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
+                                              stub_responses: true),
+                 logger = Logger.new(STDOUT),
+                 config = 'config')
+    super(ec2, logger)
+    @config = ParseConfig.new(File.join(File.dirname(__FILE__),
+                                        '..',
+                                        'conf',
+                                        config))
+  end
+
   def create_security_group_if_not_exists(vpc_id)
     security_group_name = 'TestSecurityGroup'
 
@@ -17,7 +31,7 @@ class SecurityGroupManager < AwsBase
     @logger.info('Security group does not exists, create...')
 
     sg = @ec2.create_security_group(group_name: security_group_name,
-                                    description: 'Security group for TestInstance',
+                                    description: 'Simple description.',
                                     vpc_id: vpc_id)
 
     sg.authorize_egress(ip_permissions: [
