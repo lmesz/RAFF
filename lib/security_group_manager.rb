@@ -2,6 +2,7 @@ require 'aws-sdk'
 require 'parseconfig'
 require 'aws_base'
 
+# This class is responsible for handling AWS security groups
 class SecurityGroupManager < AwsBase
   attr_reader :config
 
@@ -17,13 +18,12 @@ class SecurityGroupManager < AwsBase
   end
 
   def create_security_group_if_not_exists(vpc_id)
-    security_group_name = 'TestSecurityGroup'
+    sec_group_name = 'TestSecurityGroup'
 
     @logger.info('Check if security group exists ...')
 
     sec_group = @ec2.security_groups(filters: [{ name: 'group-name',
-                                                 values: [security_group_name] }
-                                              ])
+                                                 values: [sec_group_name] }])
 
     if sec_group.first.instance_of? Aws::EC2::SecurityGroup
       @logger.info('Security group exists')
@@ -32,26 +32,32 @@ class SecurityGroupManager < AwsBase
 
     @logger.info('Security group does not exists, create...')
 
-    sg = @ec2.create_security_group(group_name: security_group_name,
+    create_sec_group(sec_group_name, vpc_id)
+  end
+
+  def create_sec_group(sec_group_name, vpc_id)
+    sg = @ec2.create_security_group(group_name: sec_group_name,
                                     description: 'Simple description.',
                                     vpc_id: vpc_id)
-
-    ports = @config['security group']['port'].split(',')
-    ip_params = Array.new
-    ports.each do |port|
-      ip_params <<{
-                    ip_protocol: @config['security group']['proto'],
-                    from_port: port.to_i,
-                    to_port: port.to_i,
-                    ip_ranges: [{
-                      cidr_ip: @config['security group']['cidr']
-                    }]
-                  }
-    end
-
+    ip_params = create_ip_params
     sg.authorize_egress(ip_permissions: ip_params)
     sg.authorize_ingress(ip_permissions: ip_params)
-
     sg.id
+  end
+
+  # rubocop:disable Metrics/MethodLength
+  def create_ip_params
+    ip_params = []
+    @config['security group']['port'].split(',').each do |port|
+      ip_params << {
+        ip_protocol: @config['security group']['proto'],
+        from_port: port.to_i,
+        to_port: port.to_i,
+        ip_ranges: [{
+          cidr_ip: @config['security group']['cidr']
+        }]
+      }
+    end
+    ip_params
   end
 end
