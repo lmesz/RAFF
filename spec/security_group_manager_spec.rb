@@ -10,9 +10,9 @@ describe 'SecurityGroupManager Initialise' do
       secgroupman = SecurityGroupManager.new
 
       expect(secgroupman.config).to be_a(ParseConfig)
-      expect(secgroupman.config['network-settings']['proto']).to eq('tcp')
-      expect(secgroupman.config['network-settings']['port']).to eq('22')
-      expect(secgroupman.config['network-settings']['cidr']).to eq('0.0.0.0/0')
+      expect(secgroupman.config['security group']['proto']).to eq('tcp')
+      expect(secgroupman.config['security group']['port']).to eq('22,80')
+      expect(secgroupman.config['security group']['cidr']).to eq('0.0.0.0/0')
 
     end
   end
@@ -35,7 +35,24 @@ describe 'SecurityGroupManager create_security_group_if_not_exists' do
   context 'when called and the security group does not exists' do
     it 'creates it and return with the id' do
       sgmock = double('security mock')
-      allow(sgmock).to receive(:authorize_egress)
+      allow(sgmock).to receive(:authorize_egress).with(ip_permissions: [
+                          {
+                            ip_protocol: 'tcp',
+                            from_port: 22,
+                            to_port: 22,
+                            ip_ranges: [{
+                              cidr_ip: '0.0.0.0/0'
+                            }]
+                          },
+                          {
+                            ip_protocol: 'tcp',
+                            from_port: 80,
+                            to_port: 80,
+                            ip_ranges: [{
+                              cidr_ip: '0.0.0.0/0'
+                            }]
+                          }
+                        ])
       allow(sgmock).to receive(:authorize_ingress)
       allow(sgmock).to receive(:id).and_return(42)
 

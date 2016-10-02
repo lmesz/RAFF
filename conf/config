@@ -1,4 +1,4 @@
-[network-settings]
+[security group]
 proto=tcp
-port=22
+port=22,80
 cidr=0.0.0.0/0

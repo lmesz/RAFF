@@ -34,43 +34,30 @@ class SecurityGroupManager < AwsBase
                                     description: 'Simple description.',
                                     vpc_id: vpc_id)
 
-    sg.authorize_egress(ip_permissions: [
-                          {
-                            ip_protocol: 'tcp',
-                            from_port: 22,
-                            to_port: 22,
-                            ip_ranges: [{
-                              cidr_ip: '0.0.0.0/0'
-                            }]
-                          },
-                          {
-                            ip_protocol: 'tcp',
-                            from_port: 80,
-                            to_port: 80,
-                            ip_ranges: [{
-                              cidr_ip: '0.0.0.0/0'
-                            }]
-                          }
-                        ])
+    ports = @config['security group']['port'].split(',')
 
-    sg.authorize_ingress(ip_permissions: [
-                           {
-                             ip_protocol: 'tcp',
-                             from_port: 22,
-                             to_port: 22,
-                             ip_ranges: [{
-                               cidr_ip: '0.0.0.0/0'
-                             }]
-                           },
-                           {
-                             ip_protocol: 'tcp',
-                             from_port: 80,
-                             to_port: 80,
-                             ip_ranges: [{
-                               cidr_ip: '0.0.0.0/0'
-                             }]
-                           }
-                         ])
+    ip_params = [
+                  {
+                    ip_protocol: @config['security group']['proto'],
+                    from_port: ports[0].to_i,
+                    to_port: ports[0].to_i,
+                    ip_ranges: [{
+                      cidr_ip: @config['security group']['cidr'],
+                    }]
+                  },
+                  {
+                    ip_protocol: @config['security group']['proto'],
+                    from_port: ports[1].to_i,
+                    to_port: ports[1].to_i,
+                    ip_ranges: [{
+                      cidr_ip: @config['security group']['cidr'],
+                    }]
+                  }
+                ]
+
+    sg.authorize_egress(ip_permissions: ip_params )
+    sg.authorize_ingress(ip_permissions: ip_params)
+
     sg.id
   end
 end
