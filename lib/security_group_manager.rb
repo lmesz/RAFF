@@ -21,7 +21,9 @@ class SecurityGroupManager < AwsBase
 
     @logger.info('Check if security group exists ...')
 
-    sec_group = @ec2.security_groups(filters: [{ name: 'group-name', values: [security_group_name] }])
+    sec_group = @ec2.security_groups(filters: [{ name: 'group-name',
+                                                 values: [security_group_name] }
+                                              ])
 
     if sec_group.first.instance_of? Aws::EC2::SecurityGroup
       @logger.info('Security group exists')
@@ -35,27 +37,19 @@ class SecurityGroupManager < AwsBase
                                     vpc_id: vpc_id)
 
     ports = @config['security group']['port'].split(',')
-
-    ip_params = [
-                  {
+    ip_params = Array.new
+    ports.each do |port|
+      ip_params <<{
                     ip_protocol: @config['security group']['proto'],
-                    from_port: ports[0].to_i,
-                    to_port: ports[0].to_i,
+                    from_port: port.to_i,
+                    to_port: port.to_i,
                     ip_ranges: [{
-                      cidr_ip: @config['security group']['cidr'],
-                    }]
-                  },
-                  {
-                    ip_protocol: @config['security group']['proto'],
-                    from_port: ports[1].to_i,
-                    to_port: ports[1].to_i,
-                    ip_ranges: [{
-                      cidr_ip: @config['security group']['cidr'],
+                      cidr_ip: @config['security group']['cidr']
                     }]
                   }
-                ]
+    end
 
-    sg.authorize_egress(ip_permissions: ip_params )
+    sg.authorize_egress(ip_permissions: ip_params)
     sg.authorize_ingress(ip_permissions: ip_params)
 
     sg.id
