@@ -7,14 +7,6 @@ require 'logger'
 require 'aws-sdk'
 
 class AwsDrupalClusterHandler < InstanceManager
-  REGION = 'us-east-1'.freeze
-  KEY_NAME = 'TestKey'.freeze
-
-  def initialize(ec2 = Aws::EC2::Resource.new(region: REGION), logger=Logger.new(STDOUT))
-    @ec2 = ec2
-    @logger = logger
-  end
-
   def deploy(instance_name)
     key_manager = KeyManager.new(@ec2, @logger, KEY_NAME)
     key_manager.import_key_if_not_exists

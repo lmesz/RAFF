@@ -1,23 +1,27 @@
+require_relative 'aws_base'
 require 'net/http'
 
-class InstanceManager
-  def initialize(ec2, logger, keyname)
-    @ec2 = ec2
-    @logger = logger
-    @key_name = keyname
+class InstanceManager < AwsBase
+  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
+                                              stub_responses: true),
+                 logger = Logger.new(STDOUT),
+                 key_name = 'TestKey')
+    super(ec2, logger)
+    @key_name = key_name
   end
 
   def status(instance_name)
     instance = @ec2.instances(filters: [{ name: 'tag:Name',
                                           values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
-      @logger.info("Instance already exists. Public DNS adress is #{instance.first.public_dns_name}")
+      inst = instance.first
+      @logger.info("Instance already exists. Public DNS adress is #{inst.public_dns_name}")
       begin
-        uri = URI("http://#{instance.first.public_dns_name}/")
+        uri = URI("http://#{inst.public_dns_name}/")
         res = Net::HTTP.get_response(uri)
 
         if res.body.include? 'drupal'
-          @logger.info("Drupal is available at http://#{instance.first.public_dns_name}")
+          @logger.info("Drupal is available at http://#{inst.public_dns_name}")
         else
           @logger.info('Drupal is not available, the host is listen on port 80, but does not serve drupal site!')
           return false
