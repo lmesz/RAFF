@@ -1,5 +1,5 @@
 require 'aws-sdk'
-require 'aws_base'
+require './lib/aws_base'
 
 class SubnetManager < AwsBase
   def create_subnet_if_not_exists(vpc_id)

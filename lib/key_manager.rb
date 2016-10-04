@@ -1,5 +1,5 @@
 require 'aws-sdk'
-require 'aws_base'
+require './lib/aws_base'
 
 # This class handle the keys that will be used in aws ec2 instance for ssh.
 class KeyManager < AwsBase

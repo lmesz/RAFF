@@ -1,5 +1,5 @@
 require 'aws-sdk'
-require 'aws_base'
+require './lib/aws_base'
 
 class VpcManager < AwsBase
   def create_vpc_if_not_exists

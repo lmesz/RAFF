@@ -1,6 +1,6 @@
 require 'aws-sdk'
 require 'parseconfig'
-require 'aws_base'
+require './lib/aws_base'
 
 # This class is responsible for handling AWS security groups
 class SecurityGroupManager < AwsBase
