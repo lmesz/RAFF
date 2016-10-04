@@ -34,7 +34,7 @@ class Raff < Thor
   def status(instance_name)
     @logger.info("Check the status of #{instance_name}!")
     if not @aws_drupal_cluster_handler.status(instance_name)
-      @logger.error('Something is not okay with the given instance. Doesn\'t exists or exists, but page doesn\'t contains the drupal page')
+      @logger.error('Something is not okay with the given instance. Does not exist or exists, but page does not contain the drupal page')
     end
   end
 
