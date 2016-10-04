@@ -5,8 +5,10 @@ class InstanceManager < AwsBase
   def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
                                               stub_responses: true),
                  logger = Logger.new(STDOUT),
+                 net_http = Net::HTTP,
                  key_name = 'TestKey')
     super(ec2, logger)
+    @net_http = net_http
     @key_name = key_name
   end
 
@@ -14,11 +16,10 @@ class InstanceManager < AwsBase
     instance = @ec2.instances(filters: [{ name: 'tag:Name',
                                           values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
-      inst = instance.first
-      @logger.info("Instance already exists. Public DNS adress is #{inst.public_dns_name}")
       begin
-        uri = URI("http://#{inst.public_dns_name}/")
-        res = Net::HTTP.get_response(uri)
+        inst = instance.first
+        @logger.info("Instance already exists. Public DNS adress is #{inst.public_dns_name}")
+        res = @net_http.get_response(inst.public_dns_name)
 
         if res.body.include? 'drupal'
           @logger.info("Drupal is available at http://#{inst.public_dns_name}")
@@ -29,7 +30,6 @@ class InstanceManager < AwsBase
         return true
       rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
         @logger.error('Drupal is not available, because nothing listen at port 80!')
-        return false
       end
     end
     false
