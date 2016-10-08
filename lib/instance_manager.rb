@@ -12,51 +12,46 @@ class InstanceManager < AwsBase
     @key_name = key_name
   end
 
+  # rubocop: disable Metrics/MethodLength
   def status(instance_name)
     instance = @ec2.instances(filters: [{ name: 'tag:Name',
                                           values: [instance_name] }])
     if instance.first.instance_of? Aws::EC2::Instance
       begin
         inst = instance.first
-        @logger.info("Instance already exists. Public DNS adress is #{inst.public_dns_name}")
+        @logger.info('Instance already exists. Public DNS adress'\
+                     " is #{inst.public_dns_name}")
         res = @net_http.get_response(inst.public_dns_name)
 
         if res.body.include? 'drupal'
           @logger.info("Drupal is available at http://#{inst.public_dns_name}")
-        else
-          @logger.info('Drupal is not available, the host is listen on port 80, but does not serve drupal site!')
-          return false
+          return
         end
-        return true
+        raise InstanceManagerException, 'Drupal is not available, the host is'\
+                                        ' listen on port 80, but does not'\
+                                        ' serve drupal site!'
+
       rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
-        @logger.error('Drupal is not available, because nothing listen at port 80!')
+        raise InstanceManagerException, 'Drupal is not available, because'\
+                                        ' nothing listen at port 80!'
       end
     end
-    false
+    raise InstanceManagerException, 'Instance does not exists!'
+  end
+
+  def create_instance_if_not_exists(instance_name, sg_id, subnet_id)
+    begin
+      inst = create_instance(instance_name, sg_id, subnet_id)
+      return false unless inst.instance_of? Aws::EC2::Instance
+      @logger.info('The created instance public DNS address is:'\
+                   " #{inst.public_dns_name}")
+      wait_for_drupal_to_be_installed(instance_name)
+    rescue
+      raise InstanceManagerException, 'Something went wrong during initialization'
+    end
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
-    @logger.info('Check if instance exists')
-
-    instance = @ec2.instances(filters: [{ name: 'tag:Name',
-                                          values: [instance_name] }])
-    if instance.first.instance_of? Aws::EC2::Instance
-      state_of_instance = instance.first.state.name
-      if state_of_instance.eql? 'running'
-        @logger.info("Instance already exists. Public DNS adress is #{instance.first.public_dns_name}")
-        return true
-      end
-      @logger.info('Instance already exists, but not running')
-      return false
-    end
-
-    @logger.info('Instance does not exists, Create instance ...')
-
-    user_data = File.read(File.join(File.dirname(__FILE__),
-                                    '..',
-                                    'conf',
-                                    'user.data'))
-
     instance = @ec2.create_instances(image_id: 'ami-2d39803a',
                                      min_count: 1,
                                      max_count: 1,
@@ -69,20 +64,22 @@ class InstanceManager < AwsBase
                                        groups: [sg_id],
                                        associate_public_ip_address: true
                                      }])
-
-    instance[0].wait_until_running
+    inst = instance.first
+    inst.wait_until_running
 
     instance.batch_create_tags(tags: [{ key: 'Name',
                                         value: instance_name },
                                       { key: 'Group',
                                         value: 'TestGroup' }])
+    @ec2.instance(inst.id)
+  end
+  # rubocop: enable Metrics/MethodLength
 
-    inst = @ec2.instance(instance[0].id)
-
-    return false unless inst.instance_of? Aws::EC2::Instance
-    @logger.info("The created instance public DNS address is: #{inst.public_dns_name}")
-
-    wait_for_drupal_to_be_installed(instance_name)
+  def user_data
+    File.read(File.join(File.dirname(__FILE__),
+                        '..',
+                        'conf',
+                        'user.data'))
   end
 
   def wait_for_drupal_to_be_installed(instance_name)
@@ -95,42 +92,30 @@ class InstanceManager < AwsBase
       sleep(step)
       timeout -= step
     end
-
-    true
   end
 
   def stop_instance(instance_name)
-    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+    begin
+      instance = @ec2.instances(filters: [{ name: 'tag:Name',
                                           values: [instance_name] }])
-    if instance.first.instance_of? Aws::EC2::Instance
-      @logger.info("Instance already exists. #{instance.first.id}")
-      begin
-        instance.first.stop
-      rescue Aws::EC2::Errors::IncorrectInstanceState
-        @logger.error('Instance can not stopped because of it\'s state.')
-        return false
-      end
+      instance.first.stop
       instance.first.wait_until_stopped
-      @logger.info('Instance stopped.')
-      return true
+    rescue Aws::EC2::Errors::IncorrectInstanceState
+      raise InstanceManagerException, 'Instance can not stopped because of it\'s state.'
     end
-
-    @logger.info('Instance does not exists.')
-    false
   end
 
   def terminate_instance(instance_name)
-    instance = @ec2.instances(filters: [{ name: 'tag:Name',
-                                          values: [instance_name] }])
-    if instance.first.instance_of? Aws::EC2::Instance
-      @logger.info("Instance already exists. #{instance.first.id}")
+    begin
+      instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                            values: [instance_name] }])
       instance.first.terminate
       instance.first.wait_until_terminated
-      @logger.info('Instance terminated.')
-      return true
+    rescue
+      raise InstanceManagerException, "Something went wrong during termination!"
     end
-
-    @logger.info('Instance does not exists.')
-    false
   end
+end
+
+class InstanceManagerException < RuntimeError
 end

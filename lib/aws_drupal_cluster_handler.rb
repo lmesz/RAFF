@@ -17,6 +17,6 @@ class AwsDrupalClusterHandler < InstanceManager
 
     security_group_manager = SecurityGroupManager.new(@ec2, @logger)
     sg_id = security_group_manager.create_security_group_if_not_exists(vpc_id)
-    create_instance(instance_name, sg_id, subnet_id)
+    create_instance_if_not_exists(instance_name, sg_id, subnet_id)
   end
 end
