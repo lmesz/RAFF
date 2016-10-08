@@ -3,8 +3,6 @@ require_relative 'security_group_manager.rb'
 require_relative 'subnet_manager.rb'
 require_relative 'vpc_manager.rb'
 require_relative 'key_manager.rb'
-require 'logger'
-require 'aws-sdk'
 
 class AwsDrupalClusterHandler < InstanceManager
   def deploy(instance_name)
