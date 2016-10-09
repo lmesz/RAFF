@@ -40,14 +40,12 @@ class InstanceManager < AwsBase
   end
 
   def create_instance_if_not_exists(instance_name, sg_id, subnet_id)
-    begin
-      inst = create_instance(instance_name, sg_id, subnet_id)
-      @logger.info('The created instance public DNS address is:'\
-                   " #{inst.public_dns_name}")
-      wait_for_drupal_to_be_installed(instance_name)
-    rescue
-      raise InstanceManagerException, 'Something went wrong during initialization'
-    end
+    inst = create_instance(instance_name, sg_id, subnet_id)
+    @logger.info('The created instance public DNS address is:'\
+                 " #{inst.public_dns_name}")
+    wait_for_drupal_to_be_installed(instance_name)
+  rescue
+    raise InstanceManagerException, 'Something went wrong during initialization'
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
@@ -94,25 +92,22 @@ class InstanceManager < AwsBase
   end
 
   def stop_instance(instance_name)
-    begin
-      instance = @ec2.instances(filters: [{ name: 'tag:Name',
-                                          values: [instance_name] }])
-      instance.first.stop
-      instance.first.wait_until_stopped
-    rescue Aws::EC2::Errors::IncorrectInstanceState, NoMethodError
-      raise InstanceManagerException, 'Instance can not stopped because of it\'s state or does not exists.'
-    end
+    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                        values: [instance_name] }])
+    instance.first.stop
+    instance.first.wait_until_stopped
+  rescue Aws::EC2::Errors::IncorrectInstanceState, NoMethodError
+    raise InstanceManagerException, 'Instance can not stopped because of'\
+                                    ' it\'s state or does not exists.'
   end
 
   def terminate_instance(instance_name)
-    begin
-      instance = @ec2.instances(filters: [{ name: 'tag:Name',
-                                            values: [instance_name] }])
-      instance.first.terminate
-      instance.first.wait_until_terminated
-    rescue
-      raise InstanceManagerException, "Something went wrong during termination!"
-    end
+    instance = @ec2.instances(filters: [{ name: 'tag:Name',
+                                          values: [instance_name] }])
+    instance.first.terminate
+    instance.first.wait_until_terminated
+  rescue
+    raise InstanceManagerException, 'Something went wrong during termination!'
   end
 end
 

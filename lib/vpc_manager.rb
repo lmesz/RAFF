@@ -3,19 +3,14 @@ require './lib/aws_base'
 
 class VpcManager < AwsBase
   def create_vpc_if_not_exists
-    begin
-      vpc_tag_name = 'TestVPC'
-
-      @logger.info('Create vpc ...')
-      vpc = @ec2.create_vpc(cidr_block: '0.0.0.0/0')
-
-      configure_vpc(vpc, vpc_tag_name)
-      create_igw_for_vpc(vpc.vpc_id)
-
-      vpc.vpc_id
-    rescue
-      raise VpcManagerException, 'Failed to create vpc.'
-    end
+    vpc_tag_name = 'TestVPC'
+    @logger.info('Create vpc ...')
+    vpc = @ec2.create_vpc(cidr_block: '0.0.0.0/0')
+    configure_vpc(vpc, vpc_tag_name)
+    create_igw_for_vpc(vpc.vpc_id)
+    vpc.vpc_id
+  rescue
+    raise VpcManagerException, 'Failed to create vpc.'
   end
 
   def configure_vpc(vpc, vpc_tag_name)
@@ -27,7 +22,7 @@ class VpcManager < AwsBase
 
   def create_igw_for_vpc(vpc_id)
     igw_id = attach_vpc_to_internet_gateway(vpc_id)
-    create_route_table_to_internet_gateway(vpc_id, igw_id)
+    create_route_table_to_internet_gateway(igw_id)
   end
 
   def attach_vpc_to_internet_gateway(vpc_id)
@@ -45,7 +40,7 @@ class VpcManager < AwsBase
     igw.id
   end
 
-  def create_route_table_to_internet_gateway(vpc_id, igw_id)
+  def create_route_table_to_internet_gateway(igw_id)
     @logger.info('Add the internet gateway to the route tables ...')
     route_table.first.create_route(destination_cidr_block: '0.0.0.0/0',
                                    gateway_id: igw_id)

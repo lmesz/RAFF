@@ -3,13 +3,11 @@ require './lib/aws_base'
 
 class SubnetManager < AwsBase
   def create_subnet_if_not_exists(vpc_id)
-    begin
-      subnet_name = 'TestSubnet'
-      @logger.info('Subnet does not exists create it')
-      create_subnet(vpc_id, subnet_name)
-    rescue
-      raise SubnetManagerException, 'Failed to create subnet!'
-    end
+    subnet_name = 'TestSubnet'
+    @logger.info('Subnet does not exists create it')
+    create_subnet(vpc_id, subnet_name)
+  rescue
+    raise SubnetManagerException, 'Failed to create subnet!'
   end
 
   def create_subnet(vpc_id, subnet_name)

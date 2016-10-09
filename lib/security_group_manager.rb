@@ -18,13 +18,11 @@ class SecurityGroupManager < AwsBase
   end
 
   def create_security_group_if_not_exists(vpc_id)
-    begin
-      sec_group_name = 'TestSecurityGroup'
-      @logger.info('Security group does not exists, create...')
-      create_sec_group(sec_group_name, vpc_id)
-    rescue
-      raise SecurityGroupManagerException, 'Failed to create security group!'
-    end
+    sec_group_name = 'TestSecurityGroup'
+    @logger.info('Security group does not exists, create...')
+    create_sec_group(sec_group_name, vpc_id)
+  rescue
+    raise SecurityGroupManagerException, 'Failed to create security group!'
   end
 
   def create_sec_group(sec_group_name, vpc_id)

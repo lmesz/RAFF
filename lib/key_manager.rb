@@ -22,13 +22,11 @@ class KeyManager < AwsBase
   end
 
   def import_key_if_not_exists
-    begin
-      @logger.info('Import key ...')
-      pub_key = File.read(File.join(@key_path, @key_name))
-      @ec2.import_key_pair(key_name: @key_name, public_key_material: pub_key)
-    rescue Errno::ENOENT => e
-      raise KeyManagerException, e.message
-    end
+    @logger.info('Import key ...')
+    pub_key = File.read(File.join(@key_path, @key_name))
+    @ec2.import_key_pair(key_name: @key_name, public_key_material: pub_key)
+  rescue Errno::ENOENT => e
+    raise KeyManagerException, e.message
   end
 
 end
