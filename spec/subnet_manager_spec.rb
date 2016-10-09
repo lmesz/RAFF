@@ -25,6 +25,17 @@ describe 'SubnetManager Initialise' do
 end
 
 describe 'SubnetManager create_subnet_if_not_exists' do
+  context 'when something goes wrong' do
+    it 'throws SubnetManagerException' do
+      ec2mock = double('ec2')
+      loggermock = double('logger')
+      allow(loggermock).to receive(:info)
+      subnetmanager = SubnetManager.new(ec2mock, loggermock)
+      allow(subnetmanager).to receive(:create_subnet).and_raise('message')
+      expect { subnetmanager.create_subnet_if_not_exists(42) }.to raise_error(SubnetManagerException)
+    end
+  end
+
   context 'when subnet not found' do
     it 'creates it with proper parameters and returns with the id' do
       expectedid = '42'
