@@ -42,7 +42,6 @@ class InstanceManager < AwsBase
   def create_instance_if_not_exists(instance_name, sg_id, subnet_id)
     begin
       inst = create_instance(instance_name, sg_id, subnet_id)
-      return false unless inst.instance_of? Aws::EC2::Instance
       @logger.info('The created instance public DNS address is:'\
                    " #{inst.public_dns_name}")
       wait_for_drupal_to_be_installed(instance_name)
@@ -87,7 +86,7 @@ class InstanceManager < AwsBase
     step = 5
 
     until status(instance_name)
-      return false if timeout.zero?
+      raise InstanceManagerException if timeout.zero?
       @logger.info("Drupal is not installed, wait #{step} more sec")
       sleep(step)
       timeout -= step
@@ -100,8 +99,8 @@ class InstanceManager < AwsBase
                                           values: [instance_name] }])
       instance.first.stop
       instance.first.wait_until_stopped
-    rescue Aws::EC2::Errors::IncorrectInstanceState
-      raise InstanceManagerException, 'Instance can not stopped because of it\'s state.'
+    rescue Aws::EC2::Errors::IncorrectInstanceState, NoMethodError
+      raise InstanceManagerException, 'Instance can not stopped because of it\'s state or does not exists.'
     end
   end
 

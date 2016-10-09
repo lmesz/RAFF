@@ -48,6 +48,7 @@ describe 'InstanceManager create_instance' do
       instmock = double('inst')
       allow(instmock).to receive(:wait_until_running)
       allow(instmock).to receive(:id)
+      allow(instmock).to receive(:public_dns_name)
 
       instancesmock = double('instances')
       allow(instancesmock).to receive(:first).and_return(instmock)
@@ -55,7 +56,7 @@ describe 'InstanceManager create_instance' do
 
       allow(@ec2mock).to receive(:instances).and_return([])
       allow(@ec2mock).to receive(:create_instances).and_return(instancesmock)
-      allow(@ec2mock).to receive(:instance)
+      allow(@ec2mock).to receive(:instance).and_return(instmock)
       # rubocop: disable Metrics/LineLength
       expect(@ec2mock).to receive(:create_instances).with(image_id: 'ami-2d39803a',
                                                          min_count: 1,
@@ -73,6 +74,7 @@ describe 'InstanceManager create_instance' do
 
       instance_manager = InstanceManager.new(@ec2mock, @loggermock)
       allow(instance_manager).to receive(:user_data).and_return('dummyUserData')
+      allow(instance_manager).to receive(:status)
       instance_manager.create_instance_if_not_exists('notExistentInstance',
                                                      'dummySecurityGroupId',
                                                      'dummySubnetId')
