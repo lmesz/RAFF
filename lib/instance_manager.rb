@@ -2,6 +2,7 @@ require_relative 'aws_base'
 require 'net/http'
 
 class InstanceManager < AwsBase
+  STEP = 5
   def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
                                               stub_responses: true),
                  logger = Logger.new(STDOUT),
@@ -16,27 +17,20 @@ class InstanceManager < AwsBase
   def status(instance_name)
     instance = @ec2.instances(filters: [{ name: 'tag:Name',
                                           values: [instance_name] }])
-    if instance.first.instance_of? Aws::EC2::Instance
-      begin
-        inst = instance.first
-        @logger.info('Instance already exists. Public DNS adress'\
-                     " is #{inst.public_dns_name}")
-        res = @net_http.get_response(inst.public_dns_name)
-
-        if res.body.include? 'drupal'
-          @logger.info("Drupal is available at http://#{inst.public_dns_name}")
-          return
-        end
-        raise InstanceManagerException, 'Drupal is not available, the host is'\
-                                        ' listen on port 80, but does not'\
-                                        ' serve drupal site!'
-
-      rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
-        raise InstanceManagerException, 'Drupal is not available, because'\
-                                        ' nothing listen at port 80!'
-      end
+    inst = instance.first
+    if @net_http.get_response(inst.public_dns_name).body.include? 'drupal'
+      @logger.info("Drupal is available at http://#{inst.public_dns_name}")
+      return
     end
-    raise InstanceManagerException, 'Instance does not exists!'
+    raise InstanceManagerException, 'Drupal is not available, the host is'\
+                                    ' listen on port 80, but does not'\
+                                    ' serve drupal site!'
+
+    rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
+      raise InstanceManagerException, 'Drupal is not available, because'\
+                                      ' nothing listen at port 80!'
+  rescue
+      raise InstanceManagerException, 'Instance does not exists!'\
   end
 
   def create_instance_if_not_exists(instance_name, sg_id, subnet_id)
@@ -81,13 +75,12 @@ class InstanceManager < AwsBase
 
   def wait_for_drupal_to_be_installed(instance_name)
     timeout = 600
-    step = 5
 
     until status(instance_name)
       raise InstanceManagerException if timeout.zero?
-      @logger.info("Drupal is not installed, wait #{step} more sec")
-      sleep(step)
-      timeout -= step
+      @logger.info("Drupal is not installed, wait #{STEP} more sec")
+      sleep(STEP)
+      timeout -= STEP
     end
   end
 
