@@ -32,8 +32,8 @@ describe 'KeyManager Initialise' do
 
   context 'when initialized with custom parameters' do
     it 'uses them' do
-      ec2_mock = class_double('Ec2')
-      logger_mock = class_double('Logger')
+      ec2_mock = double('Ec2')
+      logger_mock = double('Logger')
       keymanager = KeyManager.new(ec2_mock, logger_mock, '/tmp', 'CustomKey')
 
       expect(keymanager.ec2).to eq(ec2_mock)
@@ -46,8 +46,9 @@ end
 
 describe 'KeyManager ImportKey' do
   before :each do
-    @ec2_mock = class_double('Ec2')
-    @logger_mock = class_double('Logger')
+    @ec2_mock = double('Ec2')
+    @logger_mock = double('Logger')
+    allow(@logger_mock).to receive(:info)
     @key_path = File.dirname(__FILE__)
     @key_name = 'Custom_key'
     @file_with_path = File.join(@key_path, @key_name)
@@ -56,7 +57,7 @@ describe 'KeyManager ImportKey' do
 
   context 'when key not exists' do
     it 'throws KeyManagerException' do
-      expect { @keymanager.import_key }.to raise_exception(KeyManagerException)
+      expect { @keymanager.import_key_if_not_exists }.to raise_exception(KeyManagerException)
     end
   end
 
@@ -65,7 +66,7 @@ describe 'KeyManager ImportKey' do
       File.open(@file_with_path, 'w') {}
       allow(@ec2_mock).to receive(:import_key_pair)
       expect(@ec2_mock).to receive(:import_key_pair)
-      @keymanager.import_key
+      @keymanager.import_key_if_not_exists
     end
   end
 
