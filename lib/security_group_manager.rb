@@ -18,21 +18,13 @@ class SecurityGroupManager < AwsBase
   end
 
   def create_security_group_if_not_exists(vpc_id)
-    sec_group_name = 'TestSecurityGroup'
-
-    @logger.info('Check if security group exists ...')
-
-    sec_group = @ec2.security_groups(filters: [{ name: 'group-name',
-                                                 values: [sec_group_name] }])
-
-    if sec_group.first.instance_of? Aws::EC2::SecurityGroup
-      @logger.info('Security group exists')
-      return sec_group.first.id
+    begin
+      sec_group_name = 'TestSecurityGroup'
+      @logger.info('Security group does not exists, create...')
+      create_sec_group(sec_group_name, vpc_id)
+    rescue
+      raise SecurityGroupManagerException, 'Failed to create security group!'
     end
-
-    @logger.info('Security group does not exists, create...')
-
-    create_sec_group(sec_group_name, vpc_id)
   end
 
   def create_sec_group(sec_group_name, vpc_id)
@@ -60,4 +52,7 @@ class SecurityGroupManager < AwsBase
     end
     ip_params
   end
+end
+
+class SecurityGroupManagerException < RuntimeError
 end

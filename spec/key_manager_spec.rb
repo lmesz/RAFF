@@ -55,12 +55,6 @@ describe 'KeyManager ImportKey' do
     @keymanager = KeyManager.new(@ec2_mock, @logger_mock, @key_path, @key_name)
   end
 
-  context 'when key not exists' do
-    it 'throws KeyManagerException' do
-      expect { @keymanager.import_key_if_not_exists }.to raise_exception(KeyManagerException)
-    end
-  end
-
   context 'when key exists' do
     it 'import happenes properly' do
       File.open(@file_with_path, 'w') {}
