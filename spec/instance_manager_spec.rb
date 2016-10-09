@@ -44,7 +44,7 @@ describe 'InstanceManager create_instance' do
   end
 
   context 'when called and instance does not exists' do
-    it 'create a new instance and returns the id' do
+    it 'creates a new instance and returns the id' do
       instmock = double('inst')
       allow(instmock).to receive(:wait_until_running)
       allow(instmock).to receive(:id)
@@ -74,7 +74,7 @@ describe 'InstanceManager create_instance' do
 
       instance_manager = InstanceManager.new(@ec2mock, @loggermock)
       allow(instance_manager).to receive(:user_data).and_return('dummyUserData')
-      allow(instance_manager).to receive(:status)
+      allow(instance_manager).to receive(:wait_for_drupal_to_be_installed)
       instance_manager.create_instance_if_not_exists('notExistentInstance',
                                                      'dummySecurityGroupId',
                                                      'dummySubnetId')
