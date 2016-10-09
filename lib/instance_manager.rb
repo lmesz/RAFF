@@ -96,7 +96,7 @@ class InstanceManager < AwsBase
                                         values: [instance_name] }])
     instance.first.stop
     instance.first.wait_until_stopped
-  rescue Aws::EC2::Errors::IncorrectInstanceState, NoMethodError
+  rescue
     raise InstanceManagerException, 'Instance can not stopped because of'\
                                     ' it\'s state or does not exists.'
   end
