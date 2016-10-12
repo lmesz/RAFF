@@ -1,21 +1,8 @@
 require 'aws-sdk'
-require 'parseconfig'
 require './lib/aws_base'
 
 # This class is responsible for handling AWS security groups
 class SecurityGroupManager < AwsBase
-  attr_reader :config
-
-  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
-                                              stub_responses: true),
-                 logger = Logger.new(STDOUT),
-                 config = 'config')
-    super(ec2, logger)
-    @config = ParseConfig.new(File.join(File.dirname(__FILE__),
-                                        '..',
-                                        'conf',
-                                        config))
-  end
 
   def create_security_group_if_not_exists(vpc_id)
     sec_group_name = 'TestSecurityGroup'

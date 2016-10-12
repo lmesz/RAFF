@@ -2,3 +2,12 @@
 proto=tcp
 port=22,80
 cidr=0.0.0.0/0
+[vpc]
+cidr=0.0.0.0/0
+dns_support=true
+dns_hostname=true
+[instance]
+ami=ami-2d39803a
+instance_type=t2.micro
+public_ip=true
+step=1

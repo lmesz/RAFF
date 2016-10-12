@@ -2,7 +2,6 @@ require_relative 'aws_base'
 require 'net/http'
 
 class InstanceManager < AwsBase
-  STEP = 5
   def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
                                               stub_responses: true),
                  logger = Logger.new(STDOUT),
@@ -43,17 +42,17 @@ class InstanceManager < AwsBase
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
-    instance = @ec2.create_instances(image_id: 'ami-2d39803a',
+    instance = @ec2.create_instances(image_id: @config['instance']['ami'],
                                      min_count: 1,
                                      max_count: 1,
                                      user_data: Base64.encode64(user_data),
                                      key_name: @key_name,
-                                     instance_type: 't2.micro',
+                                     instance_type: @config['instance']['instance_type'],
                                      network_interfaces: [{
                                        device_index: 0,
                                        subnet_id: subnet_id,
                                        groups: [sg_id],
-                                       associate_public_ip_address: true
+                                       associate_public_ip_address: !@config['instance']['public_ip'].nil?
                                      }])
     inst = instance.first
     inst.wait_until_running
@@ -75,12 +74,13 @@ class InstanceManager < AwsBase
 
   def wait_for_drupal_to_be_installed(instance_name)
     timeout = 600
+    step = @config['instance']['step'].to_i
 
     until status(instance_name)
       raise InstanceManagerException if timeout.zero?
-      @logger.info("Drupal is not installed, wait #{STEP} more sec")
-      sleep(STEP)
-      timeout -= STEP
+      @logger.info("Drupal is not installed, wait #{step} more sec")
+      sleep(step)
+      timeout -= step
     end
   end
 
