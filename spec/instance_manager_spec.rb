@@ -186,11 +186,18 @@ describe 'InstanceManager wait_for_drupal_to_be_installed' do
 
   context 'when available' do
     it 'status called only once' do
-      instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
+      net_http_mock = double('net_http')
+
+      instance_manager = InstanceManager.new(@ec2_mock,
+                                             @logger_mock,
+                                             net_http_mock,
+                                             key_name='just_a_key_name',
+                                             config='config.test')
       allow(instance_manager).to receive(:status).and_return(false, true)
       expect(instance_manager).to receive(:status).twice
 
       instance_manager.wait_for_drupal_to_be_installed('just_an_instance')
+      expect(instance_manager.config['instance']['public_ip']).to eq('false')
     end
   end
 end

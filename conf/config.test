@@ -9,5 +9,5 @@ dns_hostname=true
 [instance]
 ami=ami-2d39803a
 instance_type=t2.micro
-public_ip=true
-step=5
+public_ip=false
+step=0

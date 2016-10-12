@@ -6,8 +6,9 @@ class InstanceManager < AwsBase
                                               stub_responses: true),
                  logger = Logger.new(STDOUT),
                  net_http = Net::HTTP,
-                 key_name = 'TestKey')
-    super(ec2, logger)
+                 key_name = 'TestKey',
+                 config = 'config')
+    super(ec2, logger, config)
     @net_http = net_http
     @key_name = key_name
   end
