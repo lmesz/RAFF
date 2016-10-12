@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'logger'
 require 'thor'
 
 require './lib/aws_drupal_cluster_handler'
@@ -7,8 +8,11 @@ require './lib/aws_rest'
 
 class Raff < Thor
 
-  @logger = Logger.new(STDOUT)
-  @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(@logger)
+  def initialize(*args)
+    super
+    @logger = Logger.new(STDOUT)
+    @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(@logger)
+  end
 
   desc 'deploy <instance_name>', 'Deploy a drupal cluster'
 
