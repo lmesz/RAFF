@@ -3,32 +3,16 @@ require './lib/aws_base'
 
 # This class handle the keys that will be used in aws ec2 instance for ssh.
 class KeyManager < AwsBase
-  attr_reader :key_path
-  attr_reader :key_name
-
-  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
-                                              stub_responses: true),
-                 logger = Logger.new(STDOUT),
-                 key_path = ENV['key_path'],
-                 key_name = ENV['key_name'])
-    super(ec2, logger)
-    if key_path.nil? || key_name.nil?
-      raise KeyManagerException, 'The "key_path" and "key_name" environment'\
-                                 ' variable need to be set if not given during'\
-                                 ' initialization'
-    end
-    @key_path = key_path
-    @key_name = key_name
-  end
-
   def import_key_if_not_exists
     @logger.info('Import key ...')
-    pub_key = File.read(File.join(@key_path, @key_name))
-    @ec2.import_key_pair(key_name: @key_name, public_key_material: pub_key)
+    pub_key = File.read(File.join(@config['key']['key_path'], @config['key']['key_name']))
+    @ec2.import_key_pair(key_name: @config['key']['key_name'], public_key_material: pub_key)
+  rescue Aws::EC2::Errors::InvalidKeyPairDuplicate
+    @logger.info('Key already exists')
+    return
   rescue Errno::ENOENT => e
     raise KeyManagerException, e.message
   end
-
 end
 
 class KeyManagerException < RuntimeError

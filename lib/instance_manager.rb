@@ -6,11 +6,9 @@ class InstanceManager < AwsBase
                                               stub_responses: true),
                  logger = Logger.new(STDOUT),
                  net_http = Net::HTTP,
-                 key_name = 'TestKey',
                  config = 'config')
     super(ec2, logger, config)
     @net_http = net_http
-    @key_name = key_name
   end
 
   # rubocop: disable Metrics/MethodLength
@@ -47,7 +45,7 @@ class InstanceManager < AwsBase
                                      min_count: 1,
                                      max_count: 1,
                                      user_data: Base64.encode64(user_data),
-                                     key_name: @key_name,
+                                     key_name: @config['instance']['key_name'],
                                      instance_type: @config['instance']['instance_type'],
                                      network_interfaces: [{
                                        device_index: 0,
