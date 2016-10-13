@@ -90,9 +90,9 @@ class InstanceManager < AwsBase
                                         values: [instance_name] }])
     instance.first.stop
     instance.first.wait_until_stopped
-  rescue
-    raise InstanceManagerException, 'Instance can not stopped because of'\
-                                    ' it\'s state or does not exists.'
+    @logger.info("#{instance_name} stopped!")
+  rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState
+    raise InstanceManagerException, 'Instance can not stopped.'
   end
 
   def terminate_instance(instance_name)
@@ -100,7 +100,8 @@ class InstanceManager < AwsBase
                                           values: [instance_name] }])
     instance.first.terminate
     instance.first.wait_until_terminated
-  rescue
+    @logger.info("#{instance_name} terminated!")
+  rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState
     raise InstanceManagerException, 'Something went wrong during termination!'
   end
 end
