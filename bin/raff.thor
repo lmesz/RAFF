@@ -11,7 +11,8 @@ class Raff < Thor
   def initialize(*args)
     super
     @logger = Logger.new(STDOUT)
-    @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(@logger)
+    @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(Aws::EC2::Resource.new(:region => 'us-east-1'),
+                                                              @logger)
   end
 
   desc 'deploy <instance_name>', 'Deploy a drupal cluster'
@@ -29,8 +30,7 @@ class Raff < Thor
 
   def stop(instance_name)
     @logger.info("Stop #{instance_name}!")
-    @aws_drupal_cluster_handler = AwsDrupalClusterHandler.new(@logger)
-    if not @aws_drupal_cluster_handler.stop(instance_name)
+    if not @aws_drupal_cluster_handler.stop_instance(instance_name)
       @logger.error("Error during stopping instance: #{instance_name}!")
     end
   rescue InstanceManagerException => i
@@ -52,7 +52,7 @@ class Raff < Thor
 
   def terminate(instance_name)
     @logger.info("Terminate instance: #{instance_name}!")
-    if not @aws_drupal_cluster_handler.terminate(instance_name)
+    if not @aws_drupal_cluster_handler.terminate_instance(instance_name)
       @logger.error('Something is not okay with the given instance or does not instance.')
     end
   rescue InstanceManagerException => i
