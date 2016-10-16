@@ -191,7 +191,6 @@ describe 'InstanceManager wait_for_drupal_to_be_installed' do
       instance_manager = InstanceManager.new(@ec2_mock,
                                              @logger_mock,
                                              net_http_mock,
-                                             key_name='just_a_key_name',
                                              config='config.test')
       allow(instance_manager).to receive(:status).and_return(false, true)
       expect(instance_manager).to receive(:status).twice

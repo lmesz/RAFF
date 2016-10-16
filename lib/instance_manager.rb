@@ -89,7 +89,7 @@ class InstanceManager < AwsBase
     instance.first.stop
     instance.first.wait_until_stopped
     @logger.info("#{instance_name} stopped!")
-  rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState
+  rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState, RuntimeError
     raise InstanceManagerException, 'Instance can not stopped.'
   end
 
@@ -99,7 +99,7 @@ class InstanceManager < AwsBase
     instance.first.terminate
     instance.first.wait_until_terminated
     @logger.info("#{instance_name} terminated!")
-  rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState
+  rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState, RuntimeError
     raise InstanceManagerException, 'Something went wrong during termination!'
   end
 end
