@@ -16,7 +16,7 @@ class VpcManager < AwsBase
   def configure_vpc(vpc, vpc_tag_name)
     vpc.wait_until_exists
     vpc.modify_attribute(enable_dns_support: { value: !@config['vpc']['dns_support'].nil? })
-    vpc.modify_attribute(enable_dns_hostname: { value: !@config['vpc']['dns_hostname'].nil? })
+    vpc.modify_attribute(enable_dns_hostnames: { value: !@config['vpc']['dns_hostname'].nil? })
     vpc.create_tags(tags: [{ key: 'Name', value: vpc_tag_name }])
   end
 
@@ -45,7 +45,7 @@ class VpcManager < AwsBase
     @logger.info('Add the internet gateway to the route tables ...')
     route_table = @ec2.route_tables(filters: [{ name: 'vpc-id',
                                                 values: [vpc_id] }])
-    route_table.first.create_route(destination_cidr_block: @configure['vpc']['cidr'],
+    route_table.first.create_route(destination_cidr_block: @config['vpc']['cidr'],
                                    gateway_id: igw_id)
   end
 end
