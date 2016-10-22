@@ -75,11 +75,15 @@ class InstanceManager < AwsBase
     timeout = 600
     step = @config['instance']['step'].to_i
 
-    until status(instance_name)
-      raise InstanceManagerException if timeout.zero?
-      @logger.info("Drupal is not installed, wait #{step} more sec")
+    begin
+      status(instance_name)
+    rescue InstanceManagerException => e
+      @logger.info(e)
+      @logger.info("Wait #{step} more sec")
       sleep(step)
       timeout -= step
+      retry unless timeout.zero?
+      raise InstanceManagerException
     end
   end
 
