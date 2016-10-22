@@ -6,7 +6,7 @@ require_relative 'key_manager.rb'
 
 class AwsDrupalClusterHandler < InstanceManager
   def deploy(instance_name)
-    key_manager = KeyManager.new(@ec2, @logger, KEY_NAME)
+    key_manager = KeyManager.new(@ec2, @logger)
     key_manager.import_key_if_not_exists
 
     vpc_manager = VpcManager.new(@ec2, @logger)
