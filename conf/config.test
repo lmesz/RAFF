@@ -6,7 +6,8 @@ proto=tcp
 port=22,80
 cidr=0.0.0.0/0
 [vpc]
-cidr=0.0.0.0/0
+cidr=10.200.0.0/16
+destination_cidr_block=0.0.0.0/0
 dns_support=true
 dns_hostnames=true
 [instance]

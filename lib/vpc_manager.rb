@@ -45,7 +45,7 @@ class VpcManager < AwsBase
     @logger.info('Add the internet gateway to the route tables ...')
     route_table = @ec2.route_tables(filters: [{ name: 'vpc-id',
                                                 values: [vpc_id] }])
-    route_table.first.create_route(destination_cidr_block: @config['vpc']['cidr'],
+    route_table.first.create_route(destination_cidr_block: @config['vpc']['destination_cidr_block'],
                                    gateway_id: igw_id)
   end
 end
