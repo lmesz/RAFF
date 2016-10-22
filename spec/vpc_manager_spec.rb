@@ -31,7 +31,7 @@ describe 'VpcManager create_vpc_if_not_exists' do
       allow(vpc_mock).to receive(:create_tags)
       allow(vpc_mock).to receive(:vpc_id).and_return(42)
       expect(vpc_mock).to receive(:modify_attribute).with(enable_dns_support: { value: true })
-      expect(vpc_mock).to receive(:modify_attribute).with(enable_dns_hostname: { value: true })
+      expect(vpc_mock).to receive(:modify_attribute).with(enable_dns_hostnames: { value: true })
 
       logger_mock = double('logger')
       allow(logger_mock).to receive(:info)

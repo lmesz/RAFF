@@ -16,7 +16,7 @@ class VpcManager < AwsBase
   def configure_vpc(vpc, vpc_tag_name)
     vpc.wait_until_exists
     vpc.modify_attribute(enable_dns_support: { value: !@config['vpc']['dns_support'].nil? })
-    vpc.modify_attribute(enable_dns_hostnames: { value: !@config['vpc']['dns_hostname'].nil? })
+    vpc.modify_attribute(enable_dns_hostnames: { value: !@config['vpc']['dns_hostnames'].nil? })
     vpc.create_tags(tags: [{ key: 'Name', value: vpc_tag_name }])
   end
 

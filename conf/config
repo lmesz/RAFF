@@ -8,7 +8,7 @@ cidr=0.0.0.0/0
 [vpc]
 cidr=10.2.0.0/16
 dns_support=true
-dns_hostname=true
+dns_hostnames=true
 [instance]
 key_name=TestKey
 ami=ami-2d39803a
