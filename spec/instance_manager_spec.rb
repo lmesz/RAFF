@@ -192,7 +192,14 @@ describe 'InstanceManager wait_for_drupal_to_be_installed' do
                                              @logger_mock,
                                              net_http_mock,
                                              config='config.test')
-      allow(instance_manager).to receive(:status).and_return(false, true)
+
+      count = 0
+      allow(instance_manager).to receive(:status) do
+        count += 1
+        if count == 1
+          raise InstanceManagerException, "negyvenketto"
+        end
+      end
       expect(instance_manager).to receive(:status).twice
 
       instance_manager.wait_for_drupal_to_be_installed('just_an_instance')
