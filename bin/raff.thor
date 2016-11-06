@@ -19,9 +19,7 @@ class Raff < Thor
 
   def deploy(instance_name)
     @logger.info("Deploy #{instance_name}!")
-    if not @aws_drupal_cluster_handler.deploy(instance_name)
-      @logger.error("Error during deploy instance: #{instance_name}!")
-    end
+    @aws_drupal_cluster_handler.deploy(instance_name)
   rescue InstanceManagerException => i
     @logger.error(i.to_s)
   end
@@ -30,9 +28,7 @@ class Raff < Thor
 
   def stop(instance_name)
     @logger.info("Stop #{instance_name}!")
-    if not @aws_drupal_cluster_handler.stop_instance(instance_name)
-      @logger.error("Error during stopping instance: #{instance_name}!")
-    end
+    @aws_drupal_cluster_handler.stop_instance(instance_name)
   rescue InstanceManagerException => i
     @logger.error(i.to_s)
   end
@@ -41,9 +37,7 @@ class Raff < Thor
 
   def status(instance_name)
     @logger.info("Check the status of #{instance_name}!")
-    if not @aws_drupal_cluster_handler.status(instance_name)
-      @logger.error('Something is not okay with the given instance. Does not exist or exists, but page does not contain the drupal page')
-    end
+    @aws_drupal_cluster_handler.status(instance_name)
   rescue InstanceManagerException => i
     @logger.error(i.to_s)
   end
@@ -52,9 +46,7 @@ class Raff < Thor
 
   def terminate(instance_name)
     @logger.info("Terminate instance: #{instance_name}!")
-    if not @aws_drupal_cluster_handler.terminate_instance(instance_name)
-      @logger.error('Something is not okay with the given instance or does not instance.')
-    end
+    @aws_drupal_cluster_handler.terminate_instance(instance_name)
   rescue InstanceManagerException => i
     @logger.error(i.to_s)
   end

@@ -16,9 +16,9 @@ class InstanceManager < AwsBase
     instance = @ec2.instances(filters: [{ name: 'tag:Name',
                                           values: [instance_name] }])
     inst = instance.first
-    if @net_http.get_response(inst.public_dns_name).body.include? 'drupal'
+    if @net_http.get_response(URI.parse("http://#{inst.public_dns_name}")).body.include? 'drupal'
       @logger.info("Drupal is available at http://#{inst.public_dns_name}")
-      return
+      return true
     end
     raise InstanceManagerException, 'Drupal is not available, the host is'\
                                     ' listen on port 80, but does not'\
@@ -37,7 +37,7 @@ class InstanceManager < AwsBase
                  " #{inst.public_dns_name}")
     wait_for_drupal_to_be_installed(instance_name)
   rescue
-    raise InstanceManagerException, 'Something went wrong during initialization'
+    raise InstanceManagerException, 'Something went wrong during instance creation!'
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
@@ -78,8 +78,7 @@ class InstanceManager < AwsBase
     begin
       status(instance_name)
     rescue InstanceManagerException => e
-      @logger.info(e)
-      @logger.info("Wait #{step} more sec")
+      @logger.info("Wait #{step} more sec, #{timeout} remained")
       sleep(step)
       timeout -= step
       retry unless timeout.zero?
@@ -94,7 +93,7 @@ class InstanceManager < AwsBase
     instance.first.wait_until_stopped
     @logger.info("#{instance_name} stopped!")
   rescue NoMethodError, Aws::EC2::Errors::IncorrectInstanceState, RuntimeError
-    raise InstanceManagerException, 'Instance can not stopped.'
+    raise InstanceManagerException, 'Something went wrong during stopping the instance.'
   end
 
   def terminate_instance(instance_name)
