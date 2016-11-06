@@ -12,23 +12,39 @@ class AwsRest < Sinatra::Base
   end
 
   post '/deploy/:instance_name' do
-    raise Sinatra::NotFound unless @aws_drupal_cluster_handler.deploy(params[:instance_name])
-    everything_ok_with_message('Instance successfully deployed!')
+    begin
+      @aws_drupal_cluster_handler.deploy(params[:instance_name])
+      everything_ok_with_message('Instance successfully deployed!')
+    rescue InstanceManagerException => e
+      raise Sinatra::NotFound
+    end
   end
 
   post '/stop/:instance_name' do
-    raise Sinatra::NotFound unless @aws_drupal_cluster_handler.stop(params[:instance_name])
-    everything_ok_with_message('Instance successfully stoped!')
+    begin
+      @aws_drupal_cluster_handler.stop(params[:instance_name])
+      everything_ok_with_message('Instance successfully stoped!')
+    rescue InstanceManagerException => e
+      raise Sinatra::NotFound
+    end
   end
 
   post '/terminate/:instance_name' do
-    raise Sinatra::NotFound unless @aws_drupal_cluster_handler.terminate(params[:instance_name])
-    everything_ok_with_message('Instance successfully terminated!')
+    begin
+      @aws_drupal_cluster_handler.terminate(params[:instance_name])
+      everything_ok_with_message('Instance successfully terminated!')
+    rescue InstanceManagerException => e
+      raise Sinatra::NotFound
+    end
   end
 
   get '/status/:instance_name' do
-    raise Sinatra::NotFound unless @aws_drupal_cluster_handler.status(params[:instance_name])
-    everything_ok_with_message('Drupal is available on the given instance!')
+    begin
+      @aws_drupal_cluster_handler.status(params[:instance_name])
+      everything_ok_with_message('Drupal is available on the given instance!')
+    rescue InstanceManagerException => e
+      raise Sinatra::NotFound
+    end
   end
 
   def everything_ok_with_message(message)
