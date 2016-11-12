@@ -6,8 +6,8 @@ class AwsBase
   attr_reader :logger
   attr_reader :config
 
-  def initialize(ec2 = Aws::EC2::Resource.new(:region => 'us-east-1',
-                                              :stub_responses => true),
+  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
+                                              stub_responses: true),
                  logger = Logger.new(STDOUT),
                  config = 'config')
     @ec2 = ec2

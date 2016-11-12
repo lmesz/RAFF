@@ -32,6 +32,7 @@ class VpcManager < AwsBase
   end
 
   private
+
   def create_igw(igw_name, vpc_id)
     igw = @ec2.create_internet_gateway
     sleep(10)

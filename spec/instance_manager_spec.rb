@@ -35,9 +35,9 @@ describe 'InstanceManager status' do
     it 'throws InstanceManagerException' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
       allow(@ec2_mock).to receive(:instances).and_raise('dummy_error')
-      expect {
+      expect do
         instance_manager.status('dummy_instance')
-      }.to raise_error(InstanceManagerException)
+      end.to raise_error(InstanceManagerException)
     end
   end
 
@@ -45,9 +45,9 @@ describe 'InstanceManager status' do
     it 'the reason is in the exception' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
       allow(@ec2_mock).to receive(:instances).and_raise(Errno::ECONNREFUSED)
-      expect {
+      expect do
         instance_manager.status('dummy_instance')
-      }.to raise_error(InstanceManagerException, 'Drupal is not available, '\
+      end.to raise_error(InstanceManagerException, 'Drupal is not available, '\
                        'because nothing listen at port 80!')
     end
   end
@@ -103,11 +103,11 @@ describe 'InstanceManager create_instance_if_not_exists' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
       allow(instance_manager).to receive(:create_instance)
         .and_raise('dummy_error')
-      expect {
+      expect do
         instance_manager.create_instance_if_not_exists('instance_name',
                                                        'dummy_security_group',
                                                        'dummy_subnet_id')
-      }.to raise_error(InstanceManagerException)
+      end.to raise_error(InstanceManagerException)
     end
   end
 end
@@ -137,9 +137,9 @@ describe 'InstanceManager stop_instance' do
     it 'InstanceManagerException thrown' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
       allow(@ec2_mock).to receive(:instances).and_raise('just_an_error')
-      expect {
+      expect do
         instance_manager.stop_instance('error_trigger_instance')
-      }.to raise_error(InstanceManagerException)
+      end.to raise_error(InstanceManagerException)
     end
   end
 end
@@ -169,9 +169,9 @@ describe 'InstanceManager terminate_instance' do
     it 'InstanceManagerException thrown' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
       allow(@ec2_mock).to receive(:instances).and_raise('just_an_error')
-      expect {
+      expect do
         instance_manager.terminate_instance('error_trigger_instance')
-      }.to raise_error(InstanceManagerException)
+      end.to raise_error(InstanceManagerException)
     end
   end
 end
@@ -183,7 +183,6 @@ describe 'InstanceManager wait_for_drupal_to_be_installed' do
     @ec2_mock = double('ec2')
   end
 
-
   context 'when available' do
     it 'status called only once' do
       net_http_mock = double('net_http')
@@ -191,14 +190,12 @@ describe 'InstanceManager wait_for_drupal_to_be_installed' do
       instance_manager = InstanceManager.new(@ec2_mock,
                                              @logger_mock,
                                              net_http_mock,
-                                             config='config.test')
+                                             config = 'config.test')
 
       count = 0
       allow(instance_manager).to receive(:status) do
         count += 1
-        if count == 1
-          raise InstanceManagerException, "negyvenketto"
-        end
+        raise InstanceManagerException, 'negyvenketto' if count == 1
       end
       expect(instance_manager).to receive(:status).twice
 

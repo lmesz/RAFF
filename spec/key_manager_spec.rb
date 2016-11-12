@@ -10,7 +10,7 @@ describe 'KeyManager ImportKey' do
     logger_mock = double('Logger')
     allow(logger_mock).to receive(:info)
     File.open('/tmp/TestKeyPub.key', 'w') {}
-    config='config.test'
+    config = 'config.test'
     @keymanager = KeyManager.new(@ec2_mock, logger_mock, config)
   end
 

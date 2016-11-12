@@ -24,11 +24,11 @@ class InstanceManager < AwsBase
                                     ' listen on port 80, but does not'\
                                     ' serve drupal site!'
 
-    rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
-      raise InstanceManagerException, 'Drupal is not available, because'\
-                                      ' nothing listen at port 80!'
+  rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
+    raise InstanceManagerException, 'Drupal is not available, because'\
+                                    ' nothing listen at port 80!'
   rescue
-      raise InstanceManagerException, 'Instance does not exists!'\
+    raise InstanceManagerException, 'Instance does not exists!'\
   end
 
   def create_instance_if_not_exists(instance_name, sg_id, subnet_id)
@@ -88,7 +88,7 @@ class InstanceManager < AwsBase
 
   def stop_instance(instance_name)
     instance = @ec2.instances(filters: [{ name: 'tag:Name',
-                                        values: [instance_name] }])
+                                          values: [instance_name] }])
     instance.first.stop
     instance.first.wait_until_stopped
     @logger.info("#{instance_name} stopped!")

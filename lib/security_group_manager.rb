@@ -3,7 +3,6 @@ require './lib/aws_base'
 
 # This class is responsible for handling AWS security groups
 class SecurityGroupManager < AwsBase
-
   def create_security_group_if_not_exists(vpc_id)
     sec_group_name = 'TestSecurityGroup'
     @logger.info('Security group does not exists, create...')

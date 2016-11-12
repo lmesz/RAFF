@@ -53,7 +53,7 @@ describe 'VpcManager create_vpc_if_not_exists' do
       allow(logger_mock).to receive(:info)
 
       ec2_mock = double('ec2')
-      allow(ec2_mock).to receive(:create_vpc).and_raise("just_raise")
+      allow(ec2_mock).to receive(:create_vpc).and_raise('just_raise')
 
       vpc_manager = VpcManager.new(ec2_mock, logger_mock)
       expect { vpc_manager.create_vpc_if_not_exists }.to raise_error(VpcManagerException)

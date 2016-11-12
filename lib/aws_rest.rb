@@ -57,5 +57,4 @@ class AwsRest < Sinatra::Base
     status 404
     { result: 'error', message: 'Instance not found' }.to_json
   end
-
 end
