@@ -19,3 +19,25 @@ The script can deploy a default drupal app on an EC2 instance. At the end of the
  * [POST] `/stop/:instance_name` : Same as CLI stop.
  * [POST] `/terminate/:instance_name` : Same as CLI terminate.
  * [GET] `/status/:instance_name` : Same as CLI status.
+
+####Configuration:
+
+There are a couple of parameters that can be configured via a file under `conf/config`:
+ * key:
+  * key_path: The location of the key file that will be used to ssh into the created instance.
+  * key_name: Name of the file with extension.
+ * security_group:
+  * proto: Proocol
+  * port: List of ports via the instance will be available.
+  * cidr: From which the instance is available.
+ * vpc:
+  * cidr: The instance will get ip from that domain.
+  * destination_cidr_block: Destination cidr.
+  * dns_support: DNS support.
+  * dns_hostnames: DNS to hostname.
+ * instance:
+  * key_name: The name of the key that will be used.
+  * ami: Name of the ami.
+  * instance_type: Type of the instance.
+  * public_ip: To get public ip or not.
+  * step: When the instance created drupal is not available immediately. It is the number of seconds between 2 check.
