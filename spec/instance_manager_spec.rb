@@ -136,7 +136,7 @@ describe 'InstanceManager stop_instance' do
   context 'when called, but the instance does not exists' do
     it 'InstanceManagerException thrown' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
-      allow(@ec2_mock).to receive(:instances).and_raise('just_an_error')
+      allow(@ec2_mock).to receive(:instances).and_raise(NoMethodError)
       expect do
         instance_manager.stop_instance('error_trigger_instance')
       end.to raise_error(InstanceManagerException)
@@ -168,7 +168,7 @@ describe 'InstanceManager terminate_instance' do
   context 'when called, but the instance does not exists' do
     it 'InstanceManagerException thrown' do
       instance_manager = InstanceManager.new(@ec2_mock, @logger_mock)
-      allow(@ec2_mock).to receive(:instances).and_raise('just_an_error')
+      allow(@ec2_mock).to receive(:instances).and_raise(NoMethodError)
       expect do
         instance_manager.terminate_instance('error_trigger_instance')
       end.to raise_error(InstanceManagerException)
