@@ -9,11 +9,10 @@ class KeyManager < AwsBase
     @ec2.import_key_pair(key_name: @config['key']['key_name'], public_key_material: pub_key)
   rescue Aws::EC2::Errors::InvalidKeyPairDuplicate
     @logger.info('Key already exists')
-    return
   rescue Errno::ENOENT => e
     raise KeyManagerException, e.message
   end
 end
 
-class KeyManagerException < RuntimeError
+class KeyManagerException < StandardError
 end

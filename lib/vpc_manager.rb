@@ -51,5 +51,5 @@ class VpcManager < AwsBase
   end
 end
 
-class VpcManagerException < RuntimeError
+class VpcManagerException < StandardError
 end

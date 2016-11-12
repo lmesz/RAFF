@@ -22,5 +22,5 @@ class SubnetManager < AwsBase
   end
 end
 
-class SubnetManagerException < RuntimeError
+class SubnetManagerException < StandardError
 end

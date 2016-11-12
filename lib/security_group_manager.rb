@@ -38,5 +38,5 @@ class SecurityGroupManager < AwsBase
   end
 end
 
-class SecurityGroupManagerException < RuntimeError
+class SecurityGroupManagerException < StandardError
 end
