@@ -22,7 +22,7 @@ class AwsRest < Sinatra::Base
 
   post '/stop/:instance_name' do
     begin
-      @aws_drupal_cluster_handler.stop(params[:instance_name])
+      @aws_drupal_cluster_handler.stop_instance(params[:instance_name])
       everything_ok_with_message('Instance successfully stopped!')
     rescue InstanceManagerException => e
       raise Sinatra::NotFound
@@ -31,7 +31,7 @@ class AwsRest < Sinatra::Base
 
   post '/terminate/:instance_name' do
     begin
-      @aws_drupal_cluster_handler.terminate(params[:instance_name])
+      @aws_drupal_cluster_handler.terminate_instance(params[:instance_name])
       everything_ok_with_message('Instance successfully terminated!')
     rescue InstanceManagerException => e
       raise Sinatra::NotFound
