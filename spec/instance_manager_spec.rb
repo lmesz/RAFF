@@ -48,7 +48,7 @@ describe 'InstanceManager status' do
       expect do
         instance_manager.status('dummy_instance')
       end.to raise_error(InstanceManagerException, 'Drupal is not available, '\
-                       'because nothing listen at port 80!')
+                       'because nothing listen on port 80!')
     end
   end
 end
