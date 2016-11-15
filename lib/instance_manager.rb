@@ -21,12 +21,12 @@ class InstanceManager < AwsBase
       return true
     end
     raise InstanceManagerException, 'Drupal is not available, the host is'\
-                                    ' listen on port 80, but does not'\
+                                    ' listening on port 80, but does not'\
                                     ' serve drupal site!'
 
   rescue Timeout::Error, SocketError, Errno::ECONNREFUSED
     raise InstanceManagerException, 'Drupal is not available, because'\
-                                    ' nothing listen at port 80!'
+                                    ' nothing listen on port 80!'
   rescue
     raise InstanceManagerException, 'Instance does not exists!'\
   end

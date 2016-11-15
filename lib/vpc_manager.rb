@@ -35,7 +35,12 @@ class VpcManager < AwsBase
 
   def create_igw(igw_name, vpc_id)
     igw = @ec2.create_internet_gateway
-    sleep(10)
+
+    until @ec2.client.describe_internet_gateways[:internet_gateways].select {
+      |ig| ig[:internet_gateway_id] == igw.id }.size == 1 do
+      sleep 1
+    end
+
     igw.create_tags(tags: [{ key: 'Name',
                              value: igw_name }])
     igw.attach_to_vpc(vpc_id: vpc_id)
