@@ -12,7 +12,6 @@ dns_support=true
 dns_hostnames=true
 [instance]
 key_name=TestKey
-ami=ami-2d39803a
 instance_type=t2.micro
 public_ip=true
 step=5

@@ -2,8 +2,7 @@ require_relative 'aws_base'
 require 'net/http'
 
 class InstanceManager < AwsBase
-  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1',
-                                              stub_responses: true),
+  def initialize(ec2 = Aws::EC2::Resource.new(region: 'us-east-1'),
                  logger = Logger.new(STDOUT),
                  net_http = Net::HTTP,
                  config = 'config')
@@ -41,7 +40,7 @@ class InstanceManager < AwsBase
   end
 
   def create_instance(instance_name, sg_id, subnet_id)
-    instance = @ec2.create_instances(image_id: @config['instance']['ami'],
+    instance = @ec2.create_instances(image_id: 'ami-2d39803a',
                                      min_count: 1,
                                      max_count: 1,
                                      user_data: Base64.encode64(user_data),
