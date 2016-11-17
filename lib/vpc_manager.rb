@@ -9,7 +9,7 @@ class VpcManager < AwsBase
     configure_vpc(vpc, vpc_tag_name)
     create_igw_for_vpc(vpc.vpc_id)
     vpc.vpc_id
-  rescue RuntimeError
+  rescue StandardError
     raise VpcManagerException, 'Failed to create vpc.'
   end
 
