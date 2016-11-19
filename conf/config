@@ -1,0 +1,19 @@
+[key]
+key_path=/home/lmesz/RubymineProjects/RAFF/conf/
+key_name=TestKeyPub.key
+[security group]
+proto=tcp
+port=22,80
+cidr=0.0.0.0/0
+[vpc]
+cidr=10.200.0.0/16
+destination_cidr_block=0.0.0.0/0
+dns_support=true
+dns_hostnames=true
+[instance]
+key_name=TestKey
+instance_type=t2.micro
+public_ip=true
+step=5
+[cluster handler]
+key_name=TestKey

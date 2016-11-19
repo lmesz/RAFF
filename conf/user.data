@@ -1,0 +1,40 @@
+#!/bin/bash
+
+install_requirements() {
+    apt-add-repository ppa:ansible/ansible -y
+    LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y
+    apt-get update
+    apt-get install -y --force-yes ansible libapache2-mod-php7.0
+}
+
+prepare_ansible() {
+    cat <<EOF > /tmp/hosts.yml
+[local]
+localhost ansible_connection=local
+EOF
+    cat <<EOF > /tmp/site.yml
+---
+- hosts: local
+  become: yes
+  roles:
+    - geerlingguy.drupal
+EOF
+    ansible-galaxy install geerlingguy.drupal
+}
+
+install_roles() {
+    sudo -u ubuntu ansible-playbook -i /tmp/hosts.yml /tmp/site.yml
+}
+
+remove_apache_default_page() {
+    find /etc/apache2/sites-enabled -type l -delete && apache2ctl restart
+}
+
+main() {
+    install_requirements
+    prepare_ansible
+    install_roles
+    remove_apache_default_page
+}
+
+main
