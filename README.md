@@ -8,6 +8,11 @@
 
 The script can deploy a default drupal app on an EC2 instance. At the end of the deploy the instance is available via a browser at the resulted URL.
 
+####Install:
+
+* gem install bundle
+* bundle install
+
 ####How to execute the script:
 
 * `./bin/raff.thor deploy <instance_name>`: When the command executed a drupal instance will be available.
